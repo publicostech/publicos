@@ -10,7 +10,7 @@ import LeafletIssueMap from "../components/shared/LeafletIssueMap";
 import IndiaChoropleth from "../components/shared/IndiaChoropleth";
 import LiveIssuePanel from "../components/shared/LiveIssuePanel";
 import {
-    ISSUES, PLATFORM_STATS, LIVE_TICKER, CITY_HERO_IMAGES, TOP_CONTRIBUTORS,
+    ISSUES, PLATFORM_STATS, LIVE_TICKER, CITY_HERO_IMAGES, TOP_CONTRIBUTORS, CATEGORIES,
 } from "../lib/mockData";
 import { useLang } from "../lib/i18n";
 
@@ -389,6 +389,186 @@ export default function Landing() {
                 </div>
             </section>
 
+            {/* EVERY ISSUE — Category showcase */}
+            <section className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
+                <div className="mb-12 flex items-end justify-between gap-8 flex-wrap">
+                    <div>
+                        <div className="overline text-[#FF9933] mb-3">Beyond potholes</div>
+                        <h2 className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F] max-w-3xl">
+                            It's not just roads. It's everything civic.
+                        </h2>
+                        <p className="text-slate-600 mt-4 max-w-xl leading-relaxed">
+                            From water leaks wasting lakhs of litres, to corruption at the ration counter, to 5-storey structures on residential plots — every category gets the same public ledger treatment.
+                        </p>
+                    </div>
+                    <Link
+                        to="/feed"
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-[#0A192F] hover:text-[#FF9933] shrink-0"
+                        data-testid="showcase-view-all"
+                    >
+                        Browse all categories <ArrowRight size={14} />
+                    </Link>
+                </div>
+
+                {/* Bento showcase grid */}
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-4 md:auto-rows-[180px]" data-testid="issue-showcase-grid">
+                    {/* Garbage — large tile */}
+                    <ShowcaseTile
+                        id="CT-2402"
+                        category="garbage"
+                        tagLabel="Garbage"
+                        tagColor="#138808"
+                        img="https://images.unsplash.com/photo-1762805544399-7cdf748371e0?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzF8MHwxfHNlYXJjaHwyfHxnYXJiYWdlJTIwc3RyZWV0JTIwaW5kaWFufGVufDB8fHx8MTc3NzAxMTY5NXww&ixlib=rb-4.1.0&q=85"
+                        title="Garbage uncollected for 8 days in Sector 14"
+                        meta="Gurugram · 634 supporting"
+                        span="col-span-2 md:col-span-3 md:row-span-2"
+                    />
+
+                    {/* Water leak — small */}
+                    <ShowcaseTile
+                        id="CT-2403"
+                        category="water"
+                        tagLabel="Water"
+                        tagColor="#3B82F6"
+                        img="https://images.pexels.com/photos/15206136/pexels-photo-15206136.jpeg"
+                        title="30,000+ litres wasted daily"
+                        meta="Hyderabad · Critical"
+                        span="col-span-1 md:col-span-2 md:row-span-1"
+                    />
+
+                    {/* Pollution — tall tile */}
+                    <ShowcaseTile
+                        id="CT-2408"
+                        category="pollution"
+                        tagLabel="Pollution"
+                        tagColor="#78716C"
+                        img="https://images.pexels.com/photos/15206136/pexels-photo-15206136.jpeg"
+                        title="Factory effluent choking Bellandur Lake"
+                        meta="Bengaluru · 3,402 supporting"
+                        span="col-span-1 md:col-span-1 md:row-span-2"
+                        overlay="#0A192F"
+                    />
+
+                    {/* Streetlight */}
+                    <ShowcaseTile
+                        id="CT-2404"
+                        category="streetlight"
+                        tagLabel="Streetlights"
+                        tagColor="#F59E0B"
+                        img="https://images.pexels.com/photos/9953451/pexels-photo-9953451.jpeg"
+                        title="11 lights out on Anna Nagar"
+                        meta="Chennai · Resolved"
+                        span="col-span-1 md:col-span-2 md:row-span-1"
+                    />
+
+                    {/* Safety — editorial/text tile in saffron */}
+                    <div
+                        className="col-span-2 md:col-span-2 bg-[#FF9933] text-white rounded-lg p-6 flex flex-col justify-between relative overflow-hidden group"
+                        data-testid="showcase-safety"
+                    >
+                        <div className="overline text-white/80">Safety & Security</div>
+                        <div>
+                            <div className="font-serif text-2xl leading-tight mb-1">
+                                "Every eve-teasing incident logged publicly forces faster patrol deployment."
+                            </div>
+                            <div className="text-xs text-white/80 mt-3 font-mono">
+                                2,956 citizens supporting · Gurugram
+                            </div>
+                        </div>
+                        <ArrowRight
+                            size={18}
+                            className="self-end group-hover:translate-x-1 transition-transform"
+                        />
+                    </div>
+
+                    {/* Corruption */}
+                    <ShowcaseTile
+                        id="CT-2410"
+                        category="corruption"
+                        tagLabel="Corruption"
+                        tagColor="#991B1B"
+                        img="https://images.pexels.com/photos/9953451/pexels-photo-9953451.jpeg"
+                        title="Ration office bribes exposed"
+                        meta="Kochi · 1,893 supporting"
+                        span="col-span-1 md:col-span-2 md:row-span-1"
+                        overlay="#991B1B"
+                    />
+
+                    {/* Schools — big */}
+                    <ShowcaseTile
+                        id="CT-2411"
+                        category="infrastructure"
+                        tagLabel="Schools & Hospitals"
+                        tagColor="#8B5CF6"
+                        img="https://images.pexels.com/photos/11849379/pexels-photo-11849379.jpeg"
+                        title="ZP School roof collapsed — 200 students at risk"
+                        meta="Wardha · 2,187 supporting"
+                        span="col-span-2 md:col-span-2 md:row-span-1"
+                    />
+
+                    {/* Traffic — navy dark tile (full width last row) */}
+                    <div
+                        className="col-span-2 md:col-span-6 bg-[#0A192F] text-white rounded-lg p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden"
+                        data-testid="showcase-traffic"
+                    >
+                        <div className="flex-1 space-y-3">
+                            <div className="flex items-center gap-3">
+                                <span className="overline text-[#FF9933]">Traffic</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-[#FF9933] bg-[#FF9933]/10 border border-[#FF9933]/40 px-2 py-0.5 rounded">
+                                    In progress
+                                </span>
+                            </div>
+                            <div className="font-serif text-2xl md:text-3xl leading-tight">
+                                Signal stuck red · 40-minute jams at Connaught Place
+                            </div>
+                            <div className="font-mono text-[11px] text-white/60">
+                                #CT-2407 · New Delhi · 1,556 citizens supporting · Assigned to Delhi Traffic Police
+                            </div>
+                        </div>
+                        <div className="flex gap-6 md:border-l md:border-white/10 md:pl-8">
+                            <div>
+                                <div className="font-serif text-4xl text-[#FF9933]">40m</div>
+                                <div className="overline text-white/50 mt-1">jam time</div>
+                            </div>
+                            <div>
+                                <div className="font-serif text-4xl">4h</div>
+                                <div className="overline text-white/50 mt-1">response</div>
+                            </div>
+                            <div>
+                                <div className="font-serif text-4xl text-emerald-400">1.5K</div>
+                                <div className="overline text-white/50 mt-1">supporters</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Category strip */}
+                <div className="mt-10 p-6 md:p-8 bg-[#0A192F] text-white rounded-lg">
+                    <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
+                        <div className="md:max-w-xs shrink-0">
+                            <div className="overline text-[#FF9933] mb-2">13 issue types</div>
+                            <div className="font-serif text-2xl leading-tight">
+                                One portal. Every category. No civic problem too small, none too inconvenient.
+                            </div>
+                        </div>
+                        <div className="flex-1 flex flex-wrap gap-2" data-testid="showcase-chip-row">
+                            {CATEGORIES.map((c) => (
+                                <Link
+                                    key={c.id}
+                                    to={`/feed?category=${c.id}`}
+                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border border-white/15 hover:border-white/50 transition-colors"
+                                    style={{ color: c.color }}
+                                    data-testid={`showcase-chip-${c.id}`}
+                                >
+                                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: c.color }} />
+                                    <span className="text-white">{c.label}</span>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* CTA */}
             <section className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
                 <div className="bg-[#FAF9F6] border border-[#0A192F]/15 rounded-lg p-10 md:p-16 text-center">
@@ -419,3 +599,38 @@ export default function Landing() {
         </div>
     );
 }
+
+const ShowcaseTile = ({ id, category, tagLabel, tagColor, img, title, meta, span, overlay = "#0A192F" }) => (
+    <Link
+        to={`/issue/${id}`}
+        className={`relative rounded-lg overflow-hidden group ${span}`}
+        data-testid={`showcase-tile-${category}`}
+    >
+        <img
+            src={img}
+            alt={title}
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+        />
+        <div
+            className="absolute inset-0"
+            style={{ background: `linear-gradient(to top, ${overlay} 0%, ${overlay}CC 35%, transparent 75%)` }}
+        />
+        <div className="absolute top-3 left-3 flex items-center gap-2">
+            <span
+                className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded"
+                style={{ background: tagColor, color: "white" }}
+            >
+                {tagLabel}
+            </span>
+        </div>
+        <div className="absolute top-3 right-3 font-mono text-[10px] text-white/80 bg-black/30 backdrop-blur-sm px-2 py-0.5 rounded">
+            #{id}
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+            <h3 className="font-serif text-lg md:text-xl leading-tight mb-1.5">
+                {title}
+            </h3>
+            <div className="text-[11px] text-white/75 font-mono">{meta}</div>
+        </div>
+    </Link>
+);
