@@ -24,14 +24,28 @@ const matchState = (gjName) => {
     return STATE_MARKERS.find((s) => s.state === key);
 };
 
-const FitToIndia = () => {
+const FitToIndia = ({ trigger }) => {
     const map = useMap();
     useEffect(() => {
-        map.fitBounds([
-            [6.5, 68.0],
-            [35.5, 97.5],
-        ]);
-    }, [map]);
+        const fit = () => {
+            map.invalidateSize();
+            map.fitBounds(
+                [
+                    [6.5, 68.0],
+                    [35.5, 97.5],
+                ],
+                { padding: [6, 6] }
+            );
+        };
+        fit();
+        const t = setTimeout(fit, 200);
+        const obs = new ResizeObserver(fit);
+        obs.observe(map.getContainer());
+        return () => {
+            clearTimeout(t);
+            obs.disconnect();
+        };
+    }, [map, trigger]);
     return null;
 };
 
@@ -84,7 +98,7 @@ export const IndiaChoropleth = ({
 
         if (showLabels) {
             layer.bindTooltip(
-                `<div style="font-family:Manrope;font-size:10px;font-weight:700;color:#0A192F;text-shadow:0 1px 2px rgba(255,255,255,0.8);">${name}</div>`,
+                `<div style="font-family:Manrope;font-size:10px;font-weight:700;color:#0A192F;text-shadow:0 1px 2px rgba(255,255,255,0.9), 0 0 4px rgba(255,255,255,0.9);">${name}</div>`,
                 {
                     permanent: true,
                     direction: "center",
@@ -103,11 +117,15 @@ export const IndiaChoropleth = ({
         >
             <MapContainer
                 center={[22.5, 82]}
-                zoom={4}
+                zoom={5}
                 minZoom={4}
-                maxZoom={7}
-                scrollWheelZoom={false}
-                zoomControl={false}
+                maxZoom={10}
+                zoomSnap={0.25}
+                zoomDelta={0.5}
+                scrollWheelZoom={true}
+                doubleClickZoom={true}
+                dragging={true}
+                zoomControl={true}
                 attributionControl={false}
                 style={{ height: "100%", width: "100%", background: "#FAF9F6" }}
             >
@@ -116,18 +134,18 @@ export const IndiaChoropleth = ({
                 )}
                 {geo && (
                     <GeoJSON
-                        key={`${hovered}`}
+                        key="india-states"
                         data={geo}
                         style={style}
                         onEachFeature={onEachFeature}
                     />
                 )}
-                <FitToIndia />
+                <FitToIndia trigger={!!geo} />
             </MapContainer>
 
-            {/* Hovered state tooltip card */}
+            {/* Hovered state tooltip card — bottom-left so it doesn't hide the map */}
             {hovered && matchState(hovered) && (
-                <div className="absolute top-4 left-4 bg-white border border-[#0A192F]/15 rounded-md px-4 py-3 shadow-lg z-[500] min-w-[180px]">
+                <div className="absolute bottom-4 left-4 bg-white border border-[#0A192F]/15 rounded-md px-4 py-3 shadow-lg z-[500] min-w-[180px]">
                     <div className="overline text-[#FF9933] mb-1">{hovered}</div>
                     <div className="font-mono text-lg font-bold text-[#0A192F]">
                         {matchState(hovered).issues.toLocaleString()} issues
@@ -147,6 +165,11 @@ export const IndiaChoropleth = ({
                         {b.label}
                     </div>
                 ))}
+            </div>
+
+            {/* Hint */}
+            <div className="absolute top-4 left-4 bg-[#0A192F]/85 text-white text-[10px] font-mono uppercase tracking-widest px-2.5 py-1.5 rounded shadow z-[500]">
+                Scroll to zoom · drag to pan
             </div>
         </div>
     );

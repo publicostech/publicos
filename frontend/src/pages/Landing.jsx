@@ -349,7 +349,7 @@ export default function Landing() {
                             </Link>
                         </div>
                         <div className="lg:col-span-7 bg-white border border-[#0A192F]/10 rounded-lg p-2 overflow-hidden">
-                            <IndiaChoropleth height={560} showLabels={true} />
+                            <IndiaChoropleth height={640} showLabels={true} />
                         </div>
                     </div>
                 </div>
