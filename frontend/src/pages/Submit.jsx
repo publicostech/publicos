@@ -35,7 +35,7 @@ export default function Submit() {
         state: "",
     });
 
-    const update = (k, v) => setForm({ ...form, [k]: v });
+    const update = (k, v) => setForm((prev) => ({ ...prev, [k]: v }));
 
     const next = () => setStep(Math.min(5, step + 1));
     const prev = () => setStep(Math.max(1, step - 1));
