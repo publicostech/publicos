@@ -8,6 +8,7 @@ import {
 import IssueCard from "../components/shared/IssueCard";
 import LeafletIssueMap from "../components/shared/LeafletIssueMap";
 import IndiaChoropleth from "../components/shared/IndiaChoropleth";
+import LiveIssuePanel from "../components/shared/LiveIssuePanel";
 import {
     ISSUES, PLATFORM_STATS, LIVE_TICKER, CITY_HERO_IMAGES, TOP_CONTRIBUTORS,
 } from "../lib/mockData";
@@ -106,46 +107,7 @@ export default function Landing() {
 
                         {/* Hero info panel */}
                         <div className="lg:col-span-5">
-                            <div className="bg-[#0A192F] text-white rounded-lg overflow-hidden border border-[#0A192F] relative">
-                                <div className="p-6 flex items-center justify-between border-b border-white/10">
-                                    <div>
-                                        <div className="overline text-[#FF9933]">Live Issue</div>
-                                        <div className="font-mono text-xs text-white/60 mt-1">#{ISSUES[0].id}</div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-[#FF9933] animate-pulse" />
-                                        <span className="text-xs font-semibold">IN PROGRESS</span>
-                                    </div>
-                                </div>
-                                <div className="aspect-[16/10] overflow-hidden">
-                                    <img src={ISSUES[0].photos[0]} alt={ISSUES[0].title} className="w-full h-full object-cover" />
-                                </div>
-                                <div className="p-6 space-y-3">
-                                    <h3 className="font-serif text-xl leading-tight">
-                                        {ISSUES[0].title}
-                                    </h3>
-                                    <div className="flex items-center gap-3 text-xs text-white/60">
-                                        <span className="inline-flex items-center gap-1">
-                                            <MapPin size={12} />
-                                            {ISSUES[0].location.city}
-                                        </span>
-                                        <span className="inline-flex items-center gap-1">
-                                            <Clock size={12} />
-                                            4h response time
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center justify-between pt-3 border-t border-white/10">
-                                        <div className="flex -space-x-2">
-                                            <div className="w-7 h-7 rounded-full border-2 border-[#0A192F] bg-[#FF9933]" />
-                                            <div className="w-7 h-7 rounded-full border-2 border-[#0A192F] bg-[#138808]" />
-                                            <div className="w-7 h-7 rounded-full border-2 border-[#0A192F] bg-white" />
-                                        </div>
-                                        <div className="text-xs text-white/60">
-                                            <span className="font-mono text-[#FF9933]">{ISSUES[0].upvotes.toLocaleString()}</span> citizens supporting
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <LiveIssuePanel />
                         </div>
                     </div>
                 </div>
