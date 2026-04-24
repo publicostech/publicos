@@ -1,0 +1,234 @@
+{
+  "project_name": "CivicTrack Portal",
+  "theme": "LIGHT",
+  "archetype": "Archetype 4 (Swiss & High-Contrast) - Modified Indian Civic Theme",
+  "design_philosophy": {
+    "core_principles": [
+      "Authority & Trust: Government-grade aesthetic avoiding boring bureaucracy. Uses deep navy for structure and saffron/emerald for action and resolution.",
+      "Editorial Density: High information density without clutter. Uses sharp grid systems and typographic hierarchy to organize complex data.",
+      "Civic Pride: Monumental hero sections and strong typographic voice using serif headers."
+    ],
+    "anti_patterns": [
+      "No generic purple or teal 'tech startup' gradients.",
+      "No rounded, bubbly borders (keep border radius tight, max 8px).",
+      "No emojis.",
+      "No fully transparent headers over images (use glassmorphism or solid)."
+    ]
+  },
+  "typography": {
+    "fonts": {
+      "headings": {
+        "family": "Fraunces",
+        "weights": ["400", "600", "700"],
+        "usage": "H1, H2, monumental stats, featured callouts",
+        "fallback": "serif"
+      },
+      "body": {
+        "family": "Manrope",
+        "weights": ["400", "500", "600"],
+        "usage": "Body text, UI elements, dashboard labels",
+        "fallback": "sans-serif"
+      },
+      "mono": {
+        "family": "JetBrains Mono",
+        "weights": ["400", "500"],
+        "usage": "Data points, SLAs, pin codes",
+        "fallback": "monospace"
+      }
+    },
+    "scale": {
+      "h1": "text-5xl md:text-6xl tracking-tight leading-none",
+      "h2": "text-3xl md:text-4xl tracking-tight leading-tight",
+      "h3": "text-xl md:text-2xl font-semibold",
+      "h4": "text-lg font-medium tracking-tight",
+      "body": "text-base leading-relaxed text-slate-700",
+      "small": "text-sm text-slate-500",
+      "overline": "text-xs font-bold uppercase tracking-[0.2em] text-slate-500"
+    }
+  },
+  "colors": {
+    "primary": {
+      "name": "Civic Navy",
+      "value": "#0A192F",
+      "text_contrast": "#FFFFFF",
+      "usage": "Headers, primary buttons, major structural elements, H1/H2 text"
+    },
+    "accent_1": {
+      "name": "Saffron Energy",
+      "value": "#FF9933",
+      "text_contrast": "#FFFFFF",
+      "usage": "Urgent calls to action, active states, heatmaps"
+    },
+    "accent_2": {
+      "name": "Emerald Resolution",
+      "value": "#138808",
+      "text_contrast": "#FFFFFF",
+      "usage": "Success states, resolved markers, positive growth charts"
+    },
+    "background": {
+      "base": "#FAF9F6",
+      "surface": "#FFFFFF",
+      "subtle": "#F1F5F9"
+    },
+    "text": {
+      "primary": "#0A192F",
+      "secondary": "#475569",
+      "tertiary": "#94A3B8"
+    },
+    "status": {
+      "submitted": { "bg": "#E5E7EB", "text": "#374151" },
+      "under_review": { "bg": "#DBEAFE", "text": "#1E3A8A" },
+      "assigned": { "bg": "#FEF3C7", "text": "#92400E" },
+      "in_progress": { "bg": "#FFEDD5", "text": "#C2410C" },
+      "resolved": { "bg": "#DCFCE7", "text": "#166534" },
+      "rejected": { "bg": "#FEE2E2", "text": "#991B1B" }
+    }
+  },
+  "layout_spacing": {
+    "grid_systems": {
+      "landing": "Bento 'Tetris' Grid - grid-cols-1 md:grid-cols-12 gap-8 with asymmetric spans",
+      "dashboard": "'Control Room' Grid - grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6. Dense data, full height children."
+    },
+    "containers": {
+      "max_width": "max-w-7xl mx-auto",
+      "padding": "px-6 md:px-12",
+      "section_spacing": "py-24 md:py-32"
+    },
+    "border_radius": {
+      "default": "rounded-sm (2px) to rounded-md (6px)",
+      "cards": "rounded-lg (8px)",
+      "buttons": "rounded-md (6px)"
+    },
+    "surfaces": {
+      "glass": "backdrop-blur-xl bg-white/80 border-b border-slate-200/50",
+      "dashboard_card": "bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow",
+      "editorial_card": "bg-[#FAF9F6] border border-[#0A192F]/10 p-8"
+    }
+  },
+  "components": {
+    "icons": {
+      "library": "lucide-react",
+      "style": "stroke-width 1.5, rigid and clear"
+    },
+    "charts": {
+      "library": "recharts",
+      "palettes": [
+        "#0A192F", "#FF9933", "#138808", "#3B82F6", "#8B5CF6"
+      ],
+      "styling": "No heavy grid lines, minimal axis ticks, tooltip with Glassmorphism"
+    },
+    "shadcn_overrides": {
+      "card": "Remove default heavy shadows. Use 1px border border-slate-200. Flat background.",
+      "button": "No rounded-full unless iconic. Use crisp rounded-md. Primary button: bg-[#0A192F] hover:bg-[#0A192F]/90 text-white.",
+      "tabs": "Override fixed h-9. Make it h-auto, clear typography."
+    }
+  },
+  "motion": {
+    "hover": "Subtle -translate-y-1 on cards, opacity shifts on buttons. transition-all duration-200 ease-in-out.",
+    "page_load": "Staggered fade-in for feed items and dashboard widgets (framer-motion)."
+  },
+  "pages_to_build": [
+    "Landing Page (Hero, Live Ticker, Stats Bento, How It Works, Map Teaser)",
+    "Public Feed (Social-style issue cards, infinite scroll feel, filters)",
+    "Submit Issue (Multi-step form, upload, GPS mockup)",
+    "Interactive Map View (Stylized India SVG, heat zones, clustering mockup)",
+    "Hierarchical Dashboard (Recharts, pincode to state drill-down)",
+    "Admin/Official Panel (Tables, status updaters, moderation)",
+    "Citizen Profile (Badges, timeline)",
+    "Issue Detail Page (Timeline, officer logs)"
+  ],
+  "media": {
+    "hero_backgrounds": [
+      {
+        "category": "texture",
+        "description": "Off-white wrinkled paper texture for editorial background feel.",
+        "url": "https://images.pexels.com/photos/20112843/pexels-photo-20112843.jpeg"
+      },
+      {
+        "category": "texture_fallback",
+        "description": "Clean off-white texture.",
+        "url": "https://images.pexels.com/photos/8941369/pexels-photo-8941369.jpeg"
+      }
+    ],
+    "civic_issues": [
+      {
+        "category": "issue_pothole",
+        "description": "Patched road section.",
+        "url": "https://images.pexels.com/photos/6018646/pexels-photo-6018646.jpeg"
+      },
+      {
+        "category": "issue_pothole_2",
+        "description": "Damaged concrete/road.",
+        "url": "https://images.pexels.com/photos/11849379/pexels-photo-11849379.jpeg"
+      },
+      {
+        "category": "issue_garbage",
+        "description": "Garbage truck / pile.",
+        "url": "https://images.unsplash.com/photo-1762805544399-7cdf748371e0?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzF8MHwxfHNlYXJjaHwyfHxnYXJiYWdlJTIwc3RyZWV0JTIwaW5kaWFufGVufDB8fHx8MTc3NzAxMTY5NXww&ixlib=rb-4.1.0&q=85"
+      },
+      {
+        "category": "issue_water_leak",
+        "description": "Water leak on street.",
+        "url": "https://images.pexels.com/photos/15206136/pexels-photo-15206136.jpeg"
+      },
+      {
+        "category": "issue_streetlight",
+        "description": "Broken streetlight.",
+        "url": "https://images.pexels.com/photos/9953451/pexels-photo-9953451.jpeg"
+      }
+    ],
+    "avatars": [
+      {
+        "category": "citizen_avatar",
+        "description": "Indian man portrait.",
+        "url": "https://images.unsplash.com/photo-1560885673-34b9e5047b91?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NDh8MHwxfHNlYXJjaHwyfHxpbmRpYW4lMjBwb3J0cmFpdCUyMHNtaWxpbmd8ZW58MHx8fHwxNzc3MDExNjk1fDA&ixlib=rb-4.1.0&q=85"
+      },
+      {
+        "category": "citizen_avatar_2",
+        "description": "Indian woman portrait.",
+        "url": "https://images.unsplash.com/photo-1511763508683-99dc7949e97f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NDh8MHwxfHNlYXJjaHw0fHxpbmRpYW4lMjBwb3J0cmFpdCUyMHNtaWxpbmd8ZW58MHx8fHwxNzc3MDExNjk1fDA&ixlib=rb-4.1.0&q=85"
+      },
+      {
+        "category": "official_avatar",
+        "description": "Indian official/man portrait.",
+        "url": "https://images.pexels.com/photos/28945957/pexels-photo-28945957.jpeg"
+      }
+    ],
+    "cities": [
+      {
+        "category": "city_mumbai",
+        "description": "Indian city skyline.",
+        "url": "https://images.unsplash.com/photo-1769591364855-b01458cad4b8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NjZ8MHwxfHNlYXJjaHwzfHxpbmRpYW4lMjBjaXR5JTIwc2t5bGluZXxlbnwwfHx8fDE3NzcwMTE2OTV8MA&ixlib=rb-4.1.0&q=85"
+      },
+      {
+        "category": "city_delhi",
+        "description": "Indian city landscape.",
+        "url": "https://images.pexels.com/photos/3581694/pexels-photo-3581694.jpeg"
+      },
+      {
+        "category": "city_bangalore",
+        "description": "City with trees.",
+        "url": "https://images.pexels.com/photos/11742414/pexels-photo-11742414.jpeg"
+      }
+    ],
+    "illustrations": [
+      {
+        "category": "india_map",
+        "description": "Abstract map of India to use as background element.",
+        "url": "https://images.unsplash.com/photo-1546833998-07256bcc76ad?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzl8MHwxfHNlYXJjaHwyfHxpbmRpYSUyMGFic3RyYWN0JTIwbWFwfGVufDB8fHx8MTc3NzAxMTcwMnww&ixlib=rb-4.1.0&q=85"
+      }
+    ]
+  },
+  "testing": {
+    "attributes": "All interactive and key informational elements MUST include a data-testid attribute in kebab-case."
+  },
+  "instructions_to_main_agent": [
+    "Install lucide-react, recharts, framer-motion, clsx, tailwind-merge.",
+    "Implement language switcher toggle (UI only) in the header (EN / HI / TE).",
+    "Use standard semantic HTML sections with generous padding. Apply 'bg-[#FAF9F6]' to the main body.",
+    "Do NOT use generic Vercel/SaaS gradients. Stick to the Civic Navy, Saffron, and Emerald accent colors strictly.",
+    "Create the India map view as an interactive SVG or standard stylized layout using the provided abstract map image as a base.",
+    "Mock all data: issues, user profiles, stats, and dashboard recharts data.",
+    "Ensure the hero section uses Fraunces for the main title, with tracking-tight to create a monumental civic feel."
+  ]
+}
