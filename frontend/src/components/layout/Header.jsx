@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Menu, X, Languages, ChevronDown } from "lucide-react";
 import { useLang } from "../../lib/i18n";
+import { BrandLogo } from "../shared/BrandLogo";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -37,19 +38,10 @@ export const Header = () => {
             <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between h-16">
                 <Link
                     to="/"
-                    className="flex items-center gap-2.5 group"
+                    className="flex items-center group"
                     data-testid="header-logo"
                 >
-                    <div className="w-8 h-8 rounded-sm bg-[#0A192F] flex items-center justify-center relative overflow-hidden">
-                        <span className="absolute inset-0 bg-[#FF9933] translate-y-[75%] group-hover:translate-y-0 transition-transform duration-300" />
-                        <span className="relative font-serif text-white text-lg leading-none">C</span>
-                    </div>
-                    <div className="leading-tight">
-                        <div className="font-serif text-lg font-semibold text-[#0A192F]">PublicOS</div>
-                        <div className="text-[9px] uppercase tracking-[0.2em] text-slate-500 font-semibold -mt-0.5">
-                            Public Portal · India
-                        </div>
-                    </div>
+                    <BrandLogo size={38} />
                 </Link>
 
                 <nav className="hidden lg:flex items-center gap-7">
