@@ -1,46 +1,75 @@
 import React, { useState } from "react";
-import { Layers, Filter, X } from "lucide-react";
-import IndiaMap from "../components/shared/IndiaMap";
-import { CATEGORIES, STATE_MARKERS, ISSUES } from "../lib/mockData";
+import { Layers, Filter, X, Locate } from "lucide-react";
+import LeafletIssueMap from "../components/shared/LeafletIssueMap";
+import { CATEGORIES, ISSUES } from "../lib/mockData";
 import IssueCard from "../components/shared/IssueCard";
+import { toast } from "sonner";
+
+const VIEWS = [
+    { id: "issues", label: "Issues" },
+    { id: "states", label: "By state" },
+    { id: "heat", label: "Heat" },
+];
 
 export default function MapView() {
     const [activeState, setActiveState] = useState(null);
-    const [mode, setMode] = useState("density");
+    const [view, setView] = useState("issues");
     const [category, setCategory] = useState("all");
+    const [userLoc, setUserLoc] = useState(null);
 
     const stateIssues = activeState
         ? ISSUES.filter((i) => i.location.state === activeState.state)
         : [];
 
+    const locateMe = () => {
+        if (!navigator.geolocation) {
+            toast.error("Geolocation not supported by your browser");
+            return;
+        }
+        toast.info("Finding your location...");
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                toast.success("Location found — map centred");
+            },
+            (err) => {
+                toast.error(`Unable to fetch location: ${err.message}`);
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    };
+
     return (
         <div data-testid="page-map" className="max-w-[1440px] mx-auto px-6 md:px-12 py-10 md:py-14">
             <div className="mb-8 flex items-end justify-between flex-wrap gap-4">
                 <div>
-                    <div className="overline text-[#FF9933] mb-3">Interactive Map</div>
+                    <div className="overline text-[#FF9933] mb-3">Interactive Map · Live OSM</div>
                     <h1 className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F]">
                         India, live.
                     </h1>
                     <p className="text-slate-600 mt-2 max-w-xl">
-                        Markers scale with issue volume. Colour shows performance. Click any state to drill in.
+                        Real streets, real pins. Toggle between individual issues, state rollups, and a heat overlay. Click any pin to drill in.
                     </p>
                 </div>
-                <div className="flex gap-2 flex-wrap">
-                    <div className="inline-flex bg-white border border-[#0A192F]/15 rounded-md p-1" data-testid="map-mode-toggle">
-                        <button
-                            onClick={() => setMode("density")}
-                            className={`px-3 py-1.5 rounded text-xs font-semibold ${mode === "density" ? "bg-[#0A192F] text-white" : "text-[#0A192F]"}`}
-                            data-testid="map-mode-density"
-                        >
-                            Density
-                        </button>
-                        <button
-                            onClick={() => setMode("resolved")}
-                            className={`px-3 py-1.5 rounded text-xs font-semibold ${mode === "resolved" ? "bg-[#0A192F] text-white" : "text-[#0A192F]"}`}
-                            data-testid="map-mode-resolved"
-                        >
-                            Resolution rate
-                        </button>
+                <div className="flex gap-2 flex-wrap items-center">
+                    <button
+                        onClick={locateMe}
+                        data-testid="map-locate-me"
+                        className="inline-flex items-center gap-1.5 bg-white border border-[#0A192F]/15 font-semibold text-xs px-3 py-2 rounded-md hover:border-[#0A192F]"
+                    >
+                        <Locate size={14} strokeWidth={1.75} /> Near me
+                    </button>
+                    <div className="inline-flex bg-white border border-[#0A192F]/15 rounded-md p-1" data-testid="map-view-toggle">
+                        {VIEWS.map((v) => (
+                            <button
+                                key={v.id}
+                                onClick={() => setView(v.id)}
+                                className={`px-3 py-1.5 rounded text-xs font-semibold ${view === v.id ? "bg-[#0A192F] text-white" : "text-[#0A192F]"}`}
+                                data-testid={`map-view-${v.id}`}
+                            >
+                                {v.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
             </div>
@@ -74,6 +103,25 @@ export default function MapView() {
                         </div>
                     </div>
 
+                    <div className="bg-white border border-[#0A192F]/10 rounded-lg p-5">
+                        <div className="overline text-slate-500 mb-3">Marker legend</div>
+                        <div className="space-y-2 text-xs">
+                            {[
+                                { label: "Submitted", color: "#64748b" },
+                                { label: "Under Review", color: "#3B82F6" },
+                                { label: "Assigned", color: "#F59E0B" },
+                                { label: "In Progress", color: "#FF9933" },
+                                { label: "Resolved", color: "#138808" },
+                                { label: "Rejected", color: "#dc2626" },
+                            ].map((s) => (
+                                <div key={s.label} className="flex items-center gap-2">
+                                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: s.color }} />
+                                    {s.label}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="bg-[#0A192F] text-white rounded-lg p-5">
                         <div className="overline text-[#FF9933] mb-3">National Snapshot</div>
                         <div className="space-y-3">
@@ -86,8 +134,18 @@ export default function MapView() {
                 </aside>
 
                 {/* Map */}
-                <div className="lg:col-span-6 bg-white border border-[#0A192F]/10 rounded-lg p-4 min-h-[520px] relative">
-                    <IndiaMap mode={mode} onStateClick={setActiveState} activeState={activeState?.state} />
+                <div className="lg:col-span-6 bg-white border border-[#0A192F]/10 rounded-lg p-2">
+                    <LeafletIssueMap
+                        view={view}
+                        categoryFilter={category}
+                        onStateClick={setActiveState}
+                        height={620}
+                    />
+                    {userLoc && (
+                        <div className="mt-2 text-[11px] font-mono text-slate-500 px-2">
+                            📍 Your location: {userLoc.lat.toFixed(4)}, {userLoc.lng.toFixed(4)}
+                        </div>
+                    )}
                 </div>
 
                 {/* Detail panel */}
@@ -120,16 +178,16 @@ export default function MapView() {
                                 {stateIssues.length ? stateIssues.slice(0, 3).map((i) => (
                                     <IssueCard key={i.id} issue={i} compact />
                                 )) : (
-                                    <div className="text-xs text-slate-400 italic">No issues loaded for this state in demo data.</div>
+                                    <div className="text-xs text-slate-400 italic">No sample reports for this state in demo data.</div>
                                 )}
                             </div>
                         </div>
                     ) : (
                         <div className="bg-[#FAF9F6] border border-dashed border-[#0A192F]/20 rounded-lg p-6 sticky top-24">
                             <Filter size={22} className="text-slate-400 mb-3" strokeWidth={1.5} />
-                            <div className="font-serif text-lg mb-1 text-[#0A192F]">Pick a state</div>
+                            <div className="font-serif text-lg mb-1 text-[#0A192F]">Click any marker</div>
                             <p className="text-xs text-slate-500 leading-relaxed">
-                                Click any marker on the map to see its latest reports, resolution rate, and drill-down options.
+                                Click a pin on the map to see photo, status, upvotes and link to full detail. Switch to "By state" to see rollups, or "Heat" for density circles.
                             </p>
                         </div>
                     )}

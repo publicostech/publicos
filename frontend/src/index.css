@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "leaflet/dist/leaflet.css";
+
 html, body {
     margin: 0;
     padding: 0;
@@ -100,6 +102,74 @@ html, body {
     .divider-dotted {
         background-image: radial-gradient(circle, #0A192F 1px, transparent 1px);
         background-size: 8px 8px;
+    }
+    /* Leaflet customisations */
+    .leaflet-container {
+        font-family: 'Manrope', system-ui, sans-serif;
+        background: #FAF9F6;
+    }
+    .civic-marker {
+        background: transparent;
+        border: none;
+    }
+    .civic-marker-pin {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 3px solid #0A192F;
+        box-shadow: 0 4px 12px rgba(10, 25, 47, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+        font-family: 'JetBrains Mono', monospace;
+    }
+    .civic-marker-pulse {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px currentColor, 0 4px 10px rgba(0, 0, 0, 0.25);
+        position: relative;
+    }
+    .civic-marker-pulse::after {
+        content: '';
+        position: absolute;
+        inset: -8px;
+        border-radius: 50%;
+        border: 2px solid currentColor;
+        opacity: 0.5;
+        animation: civic-ping 2s ease-out infinite;
+    }
+    @keyframes civic-ping {
+        0% { transform: scale(0.5); opacity: 0.7; }
+        100% { transform: scale(2.2); opacity: 0; }
+    }
+    .leaflet-popup-content-wrapper {
+        border-radius: 8px;
+        border: 1px solid rgba(10, 25, 47, 0.1);
+        box-shadow: 0 10px 30px rgba(10, 25, 47, 0.15);
+        padding: 0;
+    }
+    .leaflet-popup-content {
+        margin: 0;
+        font-family: 'Manrope', sans-serif;
+    }
+    .leaflet-popup-tip {
+        background: white;
+    }
+    .leaflet-control-zoom a {
+        background: white !important;
+        color: #0A192F !important;
+        border: 1px solid rgba(10, 25, 47, 0.15) !important;
+        font-family: 'Manrope', sans-serif;
+    }
+    .leaflet-control-attribution {
+        font-size: 10px !important;
+        background: rgba(255, 255, 255, 0.85) !important;
+        font-family: 'Manrope', sans-serif !important;
     }
 }
 

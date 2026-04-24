@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
-    Camera, MapPin, AlertCircle, ChevronRight, ChevronLeft, CheckCircle2, Eye, EyeOff, Upload, Navigation,
+    Camera, MapPin, AlertCircle, ChevronRight, ChevronLeft, CheckCircle2, Eye, EyeOff, Upload, Navigation, Loader2,
 } from "lucide-react";
 import { CATEGORIES, URGENCIES } from "../lib/mockData";
 import { CategoryIcon } from "../components/shared/CategoryIcon";
@@ -10,6 +10,7 @@ import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
 import { Switch } from "../components/ui/switch";
+import LocationPreview from "../components/shared/LocationPreview";
 
 const STEPS = [
     { id: 1, label: "Category" },
@@ -33,9 +34,55 @@ export default function Submit() {
         pincode: "",
         city: "",
         state: "",
+        lat: null,
+        lng: null,
     });
+    const [locating, setLocating] = useState(false);
 
     const update = (k, v) => setForm((prev) => ({ ...prev, [k]: v }));
+
+    const detectLocation = async () => {
+        if (!navigator.geolocation) {
+            toast.error("Geolocation isn't supported by this browser");
+            return;
+        }
+        setLocating(true);
+        toast.info("Requesting GPS permission…");
+        navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+                const { latitude, longitude } = pos.coords;
+                setForm((prev) => ({ ...prev, lat: latitude, lng: longitude }));
+                try {
+                    const res = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+                        { headers: { "Accept-Language": "en" } }
+                    );
+                    const data = await res.json();
+                    const a = data.address || {};
+                    const streetParts = [a.road, a.suburb, a.neighbourhood, a.city_district].filter(Boolean);
+                    setForm((prev) => ({
+                        ...prev,
+                        lat: latitude,
+                        lng: longitude,
+                        address: streetParts.join(", ") || data.display_name?.split(",").slice(0, 3).join(", ") || "",
+                        pincode: a.postcode || "",
+                        city: a.city || a.town || a.village || a.county || "",
+                        state: a.state || "",
+                    }));
+                    toast.success("Location detected");
+                } catch (e) {
+                    toast.warning("Got GPS, but address lookup failed — please fill fields manually");
+                } finally {
+                    setLocating(false);
+                }
+            },
+            (err) => {
+                setLocating(false);
+                toast.error(`Location error: ${err.message}`);
+            },
+            { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
+        );
+    };
 
     const next = () => setStep(Math.min(5, step + 1));
     const prev = () => setStep(Math.max(1, step - 1));
@@ -221,17 +268,13 @@ export default function Submit() {
                             <p className="text-slate-600 text-sm">Use GPS or enter manually. Pincode helps route to the right ward.</p>
                         </div>
                         <button
-                            onClick={() => {
-                                update("address", "Hosur Road, Electronic City Phase 1");
-                                update("pincode", "560100");
-                                update("city", "Bengaluru");
-                                update("state", "Karnataka");
-                                toast.success("Location detected via GPS (mocked)");
-                            }}
+                            onClick={detectLocation}
+                            disabled={locating}
                             data-testid="submit-gps-btn"
-                            className="w-full md:w-auto inline-flex items-center gap-2 bg-[#FF9933] text-white font-semibold px-5 py-3 rounded-md hover:bg-[#0A192F] transition-colors"
+                            className="w-full md:w-auto inline-flex items-center gap-2 bg-[#FF9933] text-white font-semibold px-5 py-3 rounded-md hover:bg-[#0A192F] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            <Navigation size={16} /> Auto-detect location
+                            {locating ? <Loader2 size={16} className="animate-spin" /> : <Navigation size={16} />}
+                            {locating ? "Locating…" : "Auto-detect location"}
                         </button>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div className="md:col-span-2 space-y-2">
@@ -251,12 +294,24 @@ export default function Submit() {
                                 <Input data-testid="submit-state" value={form.state} onChange={(e) => update("state", e.target.value)} className="h-12 bg-white" />
                             </div>
                         </div>
-                        <div className="bg-[#FAF9F6] border border-[#0A192F]/10 rounded-md p-4 flex items-start gap-3">
-                            <MapPin size={18} className="text-[#FF9933] shrink-0 mt-0.5" />
-                            <div className="text-xs text-slate-600">
-                                Map preview will appear here once you enter a location. GPS coordinates are encrypted and only shared with the assigned department.
+                        {form.lat && form.lng ? (
+                            <div className="space-y-2">
+                                <div className="overline text-slate-500 flex items-center justify-between">
+                                    <span>Map preview</span>
+                                    <span className="font-mono text-[10px] text-slate-400">
+                                        {form.lat.toFixed(5)}, {form.lng.toFixed(5)}
+                                    </span>
+                                </div>
+                                <LocationPreview lat={form.lat} lng={form.lng} height={200} />
                             </div>
-                        </div>
+                        ) : (
+                            <div className="bg-[#FAF9F6] border border-[#0A192F]/10 rounded-md p-4 flex items-start gap-3">
+                                <MapPin size={18} className="text-[#FF9933] shrink-0 mt-0.5" />
+                                <div className="text-xs text-slate-600">
+                                    Map preview appears here once GPS is detected or you enter a location. Coordinates are encrypted and only shared with the assigned department.
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 

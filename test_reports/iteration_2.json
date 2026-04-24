@@ -1,0 +1,32 @@
+{
+  "summary": "Frontend-only testing of new Leaflet + OpenStreetMap integration on /map, Auto-detect GPS flow on /submit step 4, and LocationPreview on /issue/:id. All 14 feature-list items PASS. One minor data gap fixed in-place: CT-2405 and CT-2410 were missing lat/lng in mockData.js, preventing LocationPreview from rendering on those two detail pages; added realistic coordinates. All pages (Landing, Feed, Dashboard, Profile, Admin, Official) still load cleanly. Zero console errors, zero page errors across every tested route.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(Informational) Auto-detect button on /submit now correctly fills all four fields (address, pincode, city, state) from Nominatim — the iteration_1 stale-closure bug is confirmed FIXED.",
+    "(Fixed in this iteration) Added lat/lng to CT-2405 (Mumbai 19.1396, 72.8338) and CT-2410 (Kochi 9.9816, 76.2999) so LocationPreview now renders on every issue detail page CT-2401 through CT-2412."
+  ],
+  "critical_code_review_comments": [
+    "LeafletIssueMap.jsx line 8-13 mutates the global L.Icon.Default at module load. Harmless here but means this side-effect leaks into any future Leaflet map in the app — acceptable for an MVP but worth a comment.",
+    "Submit.jsx Auto-detect location does a live call to nominatim.openstreetmap.org on every click. No debounce or cache. For public demo this is fine (Nominatim usage policy allows light use), but in production consider proxying via backend + caching per pincode to avoid rate limits (1 req/sec).",
+    "LocationPreview attributionControl={false} — OSM tile usage technically requires attribution. The main /map view does show it, but for strict OSM-TOS compliance, every tile render should attribute. Non-blocking for MVP.",
+    "LeafletIssueMap uses divIcon with inline styles. Works, but if marker count grows to hundreds, consider MarkerClusterGroup for perf."
+  ],
+  "updated_files": [
+    "/app/frontend/src/lib/mockData.js (added lat/lng to CT-2405 and CT-2410)"
+  ],
+  "success_rate": {"backend": "N/A (frontend-only testing requested)", "frontend": "100% — all 14 tested items pass"},
+  "seed_data_creation": "None — used existing static mock data; added 2 missing lat/lng coordinates",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Leaflet integration is fully wired. Verified: (1) /map renders leaflet-map with 16+ OSM tile requests and leaflet-container CSS loaded; (2) all 3 view toggles (issues/states/heat) swap marker rendering — 10 issue markers, 18 state pin markers, 18 heat circles; (3) state-marker click opens popup AND populates map-state-panel right sidebar; (4) issue-marker popup contains photo + status badge + title + upvotes + 'View details →' link pointing to /issue/:id; (5) category filter (map-cat-all → map-cat-roads) narrowed 10 → 1 marker; (6) Near me button gracefully shows toast on geolocation denial, no stuck spinner, no crash; (7) Submit step-4 Auto-detect: in headless geolocation is denied → btn resets to 'Auto-detect location', not disabled, no crash; when geolocation is mocked successful via page.evaluate overriding navigator.geolocation.getCurrentPosition with Bengaluru coords, Nominatim reverse-geocode populated address='Vittal Mallya Road, Ashokanagar, D'Souza Layout, Bengaluru Central City Corporation', pincode='560001', city='Bengaluru', state='Karnataka', and LocationPreview mini-map rendered with a tile image — confirms iteration_1 stale-closure fix landed; (8) LocationPreview visible on all 11 detail pages CT-2402..CT-2412 AND CT-2401 after the lat/lng data fix. Zero console/page errors observed anywhere.",
+  "rca of the issue": "Minor data RCA: mockData.js entries for CT-2405 (Mumbai) and CT-2410 (Kochi) had `location` objects without `lat`/`lng`. LocationPreview returns null early when lat||lng falsy, so the detail page silently omitted the map card. Fixed by adding realistic coordinates (Lokhandwala Complex, Mumbai = 19.1396, 72.8338; Taluk Office Ernakulam, Kochi = 9.9816, 76.2999). No code change needed, only data completion."
+}

@@ -7,6 +7,7 @@ import {
 import { ISSUES, COMMENTS } from "../lib/mockData";
 import { StatusBadge } from "../components/shared/StatusBadge";
 import { CategoryChip } from "../components/shared/CategoryIcon";
+import LocationPreview from "../components/shared/LocationPreview";
 import { toast } from "sonner";
 
 export default function IssueDetail() {
@@ -187,6 +188,11 @@ export default function IssueDetail() {
                     {/* Location */}
                     <div className="bg-white border border-[#0A192F]/10 rounded-lg p-5">
                         <div className="overline text-slate-500 mb-3">Location</div>
+                        {issue.location.lat && issue.location.lng && (
+                            <div className="mb-4">
+                                <LocationPreview lat={issue.location.lat} lng={issue.location.lng} height={160} />
+                            </div>
+                        )}
                         <div className="space-y-2 text-sm">
                             <Row label="Address" value={issue.location.address} />
                             <Row label="City" value={issue.location.city} />
