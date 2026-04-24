@@ -1,0 +1,165 @@
+import React, { useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Menu, X, Languages, ChevronDown } from "lucide-react";
+import { useLang } from "../../lib/i18n";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+
+const LANGS = [
+    { code: "en", label: "English" },
+    { code: "hi", label: "हिन्दी" },
+    { code: "te", label: "తెలుగు" },
+];
+
+export const Header = () => {
+    const { lang, setLang, t } = useLang();
+    const [open, setOpen] = useState(false);
+    const navigate = useNavigate();
+
+    const navLinkCls = ({ isActive }) =>
+        `px-1.5 py-1 text-sm font-medium transition-colors ${
+            isActive
+                ? "text-[#FF9933]"
+                : "text-[#0A192F] hover:text-[#FF9933]"
+        }`;
+
+    return (
+        <header
+            data-testid="site-header"
+            className="sticky top-0 z-40 glass border-b border-[#0A192F]/10"
+        >
+            {/* Top accent bar */}
+            <div className="h-1 bg-gradient-to-r from-[#FF9933] via-white to-[#138808]" />
+            <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between h-16">
+                <Link
+                    to="/"
+                    className="flex items-center gap-2.5 group"
+                    data-testid="header-logo"
+                >
+                    <div className="w-8 h-8 rounded-sm bg-[#0A192F] flex items-center justify-center relative overflow-hidden">
+                        <span className="absolute inset-0 bg-[#FF9933] translate-y-[75%] group-hover:translate-y-0 transition-transform duration-300" />
+                        <span className="relative font-serif text-white text-lg leading-none">C</span>
+                    </div>
+                    <div className="leading-tight">
+                        <div className="font-serif text-lg font-semibold text-[#0A192F]">CivicTrack</div>
+                        <div className="text-[9px] uppercase tracking-[0.2em] text-slate-500 font-semibold -mt-0.5">
+                            Public Portal · India
+                        </div>
+                    </div>
+                </Link>
+
+                <nav className="hidden lg:flex items-center gap-7">
+                    <NavLink to="/feed" className={navLinkCls} data-testid="nav-feed">
+                        {t("nav.feed")}
+                    </NavLink>
+                    <NavLink to="/map" className={navLinkCls} data-testid="nav-map">
+                        {t("nav.map")}
+                    </NavLink>
+                    <NavLink to="/dashboard" className={navLinkCls} data-testid="nav-dashboard">
+                        {t("nav.dashboard")}
+                    </NavLink>
+                    <NavLink to="/profile" className={navLinkCls} data-testid="nav-profile">
+                        {t("nav.profile")}
+                    </NavLink>
+                    <NavLink to="/official" className={navLinkCls} data-testid="nav-official">
+                        {t("nav.official")}
+                    </NavLink>
+                    <NavLink to="/admin" className={navLinkCls} data-testid="nav-admin">
+                        {t("nav.admin")}
+                    </NavLink>
+                </nav>
+
+                <div className="hidden lg:flex items-center gap-3">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button
+                                data-testid="lang-switcher"
+                                className="inline-flex items-center gap-1.5 text-sm font-medium text-[#0A192F] px-2.5 py-1.5 rounded-md hover:bg-[#0A192F]/5"
+                            >
+                                <Languages size={14} strokeWidth={1.75} />
+                                {LANGS.find((l) => l.code === lang)?.label}
+                                <ChevronDown size={12} />
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {LANGS.map((l) => (
+                                <DropdownMenuItem
+                                    key={l.code}
+                                    onClick={() => setLang(l.code)}
+                                    data-testid={`lang-option-${l.code}`}
+                                >
+                                    {l.label}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <button
+                        data-testid="header-report-btn"
+                        onClick={() => navigate("/submit")}
+                        className="inline-flex items-center gap-1.5 bg-[#0A192F] text-white text-sm font-semibold px-4 py-2 rounded-md hover:bg-[#FF9933] transition-colors"
+                    >
+                        {t("nav.submit")}
+                    </button>
+                </div>
+
+                <button
+                    className="lg:hidden p-2 text-[#0A192F]"
+                    onClick={() => setOpen(!open)}
+                    data-testid="mobile-menu-toggle"
+                >
+                    {open ? <X size={22} /> : <Menu size={22} />}
+                </button>
+            </div>
+
+            {open && (
+                <div className="lg:hidden border-t border-[#0A192F]/10 bg-white">
+                    <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col gap-3">
+                        {["feed", "map", "dashboard", "profile", "official", "admin"].map((k) => (
+                            <NavLink
+                                key={k}
+                                to={`/${k}`}
+                                className={navLinkCls}
+                                onClick={() => setOpen(false)}
+                                data-testid={`mobile-nav-${k}`}
+                            >
+                                {t(`nav.${k}`)}
+                            </NavLink>
+                        ))}
+                        <div className="flex gap-2 pt-2 border-t border-[#0A192F]/10">
+                            {LANGS.map((l) => (
+                                <button
+                                    key={l.code}
+                                    onClick={() => setLang(l.code)}
+                                    data-testid={`mobile-lang-${l.code}`}
+                                    className={`text-xs px-2 py-1 rounded border ${
+                                        lang === l.code
+                                            ? "bg-[#0A192F] text-white border-[#0A192F]"
+                                            : "text-[#0A192F] border-[#0A192F]/20"
+                                    }`}
+                                >
+                                    {l.label}
+                                </button>
+                            ))}
+                        </div>
+                        <button
+                            onClick={() => {
+                                setOpen(false);
+                                navigate("/submit");
+                            }}
+                            data-testid="mobile-report-btn"
+                            className="mt-2 bg-[#0A192F] text-white font-semibold px-4 py-2.5 rounded-md"
+                        >
+                            {t("nav.submit")}
+                        </button>
+                    </div>
+                </div>
+            )}
+        </header>
+    );
+};
+
+export default Header;
