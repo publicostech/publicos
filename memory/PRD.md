@@ -55,6 +55,16 @@ Build a modern, scalable civic-tech web platform called **CivicTrack Portal** wh
 - ✅ Official queue + status update flow
 - ✅ Stale-closure bug fix in Submit wizard (functional setState)
 
+## What's Been Implemented (Feb 24, 2026 — v2 Leaflet)
+- ✅ react-leaflet 5 + leaflet 1.9 added, OSM tile layer rendering
+- ✅ Custom divIcon pulsing markers colour-coded by status, state-aggregate pins, heat circles
+- ✅ 3-mode toggle on /map: Issues / By state / Heat
+- ✅ 'Near me' button using navigator.geolocation on /map
+- ✅ Real browser geolocation on /submit GPS button with Nominatim reverse-geocode (auto-fills address/pincode/city/state)
+- ✅ LocationPreview mini-map on /submit step 4 and every /issue/:id detail page
+- ✅ All 12 mock issues now have lat/lng coordinates
+- ✅ Testing agent iter-2: 100% pass, 0 console errors
+
 ## Known Limitations (by design, UI-only phase)
 - All data is mocked client-side (no API calls)
 - No real auth/OTP/social login
