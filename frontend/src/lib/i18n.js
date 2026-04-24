@@ -16,7 +16,7 @@ const translations = {
             eyebrow: "A Civic Accountability Initiative",
             title: "Every pothole. Every complaint. Every promise kept.",
             subtitle:
-                "CivicTrack is India's public ledger of civic issues — open, auditable, and built for citizens, not bureaucracies.",
+                "PublicOS is India's public ledger of civic issues — open, auditable, and built for citizens, not bureaucracies.",
             cta_primary: "Report an Issue",
             cta_secondary: "Explore the Feed",
         },
@@ -57,7 +57,7 @@ const translations = {
             eyebrow: "एक नागरिक जवाबदेही पहल",
             title: "हर गड्ढा. हर शिकायत. हर वादा पूरा.",
             subtitle:
-                "CivicTrack भारत का सार्वजनिक नागरिक मुद्दों का खुला लेखाजोखा है — पारदर्शी, ऑडिट योग्य, और नागरिकों के लिए बना है।",
+                "PublicOS भारत का सार्वजनिक नागरिक मुद्दों का खुला लेखाजोखा है — पारदर्शी, ऑडिट योग्य, और नागरिकों के लिए बना है।",
             cta_primary: "समस्या दर्ज करें",
             cta_secondary: "फ़ीड देखें",
         },
@@ -98,7 +98,7 @@ const translations = {
             eyebrow: "పౌర జవాబుదారీతనం కార్యక్రమం",
             title: "ప్రతి గుంట. ప్రతి ఫిర్యాదు. ప్రతి వాగ్దానం.",
             subtitle:
-                "CivicTrack భారతదేశ పౌర సమస్యల బహిరంగ లెడ్జర్ — పారదర్శకంగా, ఆడిట్ చేయదగినది, పౌరుల కోసం రూపొందించబడింది.",
+                "PublicOS భారతదేశ పౌర సమస్యల బహిరంగ లెడ్జర్ — పారదర్శకంగా, ఆడిట్ చేయదగినది, పౌరుల కోసం రూపొందించబడింది.",
             cta_primary: "సమస్యను నివేదించండి",
             cta_secondary: "ఫీడ్ చూడండి",
         },

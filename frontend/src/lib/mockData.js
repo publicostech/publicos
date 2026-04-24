@@ -1,4 +1,4 @@
-// Mocked data for CivicTrack Portal
+// Mocked data for PublicOS Portal
 
 export const CATEGORIES = [
     { id: "roads", label: "Roads & Potholes", icon: "Construction", color: "#FF9933" },

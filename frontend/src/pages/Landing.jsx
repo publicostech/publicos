@@ -6,23 +6,28 @@ import {
     CheckCircle2, Eye, Hammer, BarChart3, Sparkles,
 } from "lucide-react";
 import IssueCard from "../components/shared/IssueCard";
-import IndiaMap from "../components/shared/IndiaMap";
+import LeafletIssueMap from "../components/shared/LeafletIssueMap";
 import {
     ISSUES, PLATFORM_STATS, LIVE_TICKER, CITY_HERO_IMAGES, TOP_CONTRIBUTORS,
 } from "../lib/mockData";
 import { useLang } from "../lib/i18n";
 
-const Stat = ({ label, value, sub, accent }) => (
-    <div className="p-6 md:p-8 border border-[#0A192F]/10 bg-white rounded-lg" data-testid={`stat-${label.toLowerCase().replace(/\s+/g, "-")}`}>
-        <div className="overline text-slate-500 mb-3">{label}</div>
-        <div className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F]">
-            {value}
-        </div>
-        {sub && (
-            <div className={`text-xs mt-2 font-mono tracking-tight ${accent || "text-slate-500"}`}>
-                {sub}
+const Stat = ({ label, value, sub, accent, className = "" }) => (
+    <div
+        className={`p-6 md:p-7 border border-[#0A192F]/10 bg-white rounded-lg flex flex-col justify-between min-h-[160px] ${className}`}
+        data-testid={`stat-${label.toLowerCase().replace(/\s+/g, "-")}`}
+    >
+        <div className="overline text-slate-500">{label}</div>
+        <div>
+            <div className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F] leading-none">
+                {value}
             </div>
-        )}
+            {sub && (
+                <div className={`text-xs mt-2 font-mono tracking-tight ${accent || "text-slate-500"}`}>
+                    {sub}
+                </div>
+            )}
+        </div>
     </div>
 );
 
@@ -198,19 +203,44 @@ export default function Landing() {
                             <TrendingUp size={14} /> +18% month over month
                         </div>
                     </div>
-                    <Stat label="Resolved" value={`${Math.round((PLATFORM_STATS.resolved / PLATFORM_STATS.total_reports) * 100)}%`} sub="168,421 closed with proof" accent="text-emerald-700" />
-                    <Stat label="Avg resolution" value={`${PLATFORM_STATS.avg_resolution_days}d`} sub="faster than SLA in 7 states" />
-                    <Stat label="Cities live" value={PLATFORM_STATS.cities} sub="across 28 states + 8 UTs" />
-                    <Stat label="Officials onboard" value={`${(PLATFORM_STATS.officials / 1000).toFixed(1)}K`} sub="from ward to state level" accent="text-[#FF9933]" />
-                    <div className="md:col-span-3 bg-[#FF9933] text-white rounded-lg p-6 flex flex-col justify-between min-h-[160px]">
+                    <Stat
+                        className="md:col-span-2"
+                        label="Resolved"
+                        value={`${Math.round((PLATFORM_STATS.resolved / PLATFORM_STATS.total_reports) * 100)}%`}
+                        sub="168,421 closed with proof"
+                        accent="text-emerald-700"
+                    />
+                    <Stat
+                        className="md:col-span-2"
+                        label="Avg resolution"
+                        value={`${PLATFORM_STATS.avg_resolution_days}d`}
+                        sub="faster than SLA in 7 states"
+                    />
+                    <div className="md:col-span-3 md:row-span-2 bg-[#FF9933] text-white rounded-lg p-6 flex flex-col justify-between min-h-[160px]">
                         <div className="overline text-white/80">Citizens</div>
                         <div>
-                            <div className="font-serif text-5xl tracking-tight">
+                            <div className="font-serif text-6xl tracking-tight leading-none">
                                 {(PLATFORM_STATS.citizens / 1000000).toFixed(1)}M
                             </div>
-                            <div className="text-xs mt-1 font-mono text-white/80">watching · reporting · upvoting</div>
+                            <div className="text-xs mt-2 font-mono text-white/80">watching · reporting · upvoting</div>
+                        </div>
+                        <div className="text-[11px] font-mono text-white/70">
+                            +42,000 this week
                         </div>
                     </div>
+                    <Stat
+                        className="md:col-span-2"
+                        label="Cities live"
+                        value={PLATFORM_STATS.cities}
+                        sub="across 28 states + 8 UTs"
+                    />
+                    <Stat
+                        className="md:col-span-2"
+                        label="Officials onboard"
+                        value={`${(PLATFORM_STATS.officials / 1000).toFixed(1)}K`}
+                        sub="from ward to state level"
+                        accent="text-[#FF9933]"
+                    />
                 </div>
             </section>
 
@@ -317,8 +347,8 @@ export default function Landing() {
                                 Open full map <ArrowRight size={14} />
                             </Link>
                         </div>
-                        <div className="lg:col-span-7 bg-white border border-[#0A192F]/10 rounded-lg p-4">
-                            <IndiaMap />
+                        <div className="lg:col-span-7 bg-white border border-[#0A192F]/10 rounded-lg p-2 overflow-hidden">
+                            <LeafletIssueMap view="heat" height={480} />
                         </div>
                     </div>
                 </div>

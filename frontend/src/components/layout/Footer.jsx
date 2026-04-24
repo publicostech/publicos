@@ -17,7 +17,7 @@ export const Footer = () => {
                                 <span className="font-serif text-white text-xl">C</span>
                             </div>
                             <div>
-                                <div className="font-serif text-2xl">CivicTrack</div>
+                                <div className="font-serif text-2xl">PublicOS</div>
                                 <div className="text-[10px] uppercase tracking-[0.25em] text-white/60">
                                     Public Portal · India
                                 </div>
@@ -69,7 +69,7 @@ export const Footer = () => {
                 </div>
 
                 <div className="mt-14 pt-6 border-t border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs text-white/50">
-                    <div>© 2026 CivicTrack Portal — An independent civic-tech initiative</div>
+                    <div>© 2026 PublicOS Portal — An independent civic-tech initiative</div>
                     <div className="flex gap-5">
                         <a href="#" className="hover:text-white">Privacy</a>
                         <a href="#" className="hover:text-white">Terms</a>

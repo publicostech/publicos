@@ -1,7 +1,7 @@
-# CivicTrack Portal — PRD
+# PublicOS — PRD
 
 ## Original Problem Statement
-Build a modern, scalable civic-tech web platform called **CivicTrack Portal** where every citizen can report local problems publicly and transparently. The platform should function like a combination of social reporting + governance analytics + public accountability dashboard. Citizens post issues (potholes, garbage, water, streetlights, drainage, corruption, pollution, etc.) with photos, GPS, urgency. Officials (ward → mandal → district → state → national) get dashboards with heatmaps, trends, SLA tracking. Super admin moderates. Vision: tomorrow every Indian city on one transparent platform with clear analytics showing which state performs how.
+Build a modern, scalable civic-tech web platform called **PublicOS Portal** where every citizen can report local problems publicly and transparently. The platform should function like a combination of social reporting + governance analytics + public accountability dashboard. Citizens post issues (potholes, garbage, water, streetlights, drainage, corruption, pollution, etc.) with photos, GPS, urgency. Officials (ward → mandal → district → state → national) get dashboards with heatmaps, trends, SLA tracking. Super admin moderates. Vision: tomorrow every Indian city on one transparent platform with clear analytics showing which state performs how.
 
 > Scope clarified by user: **Build the UI/UX pages only for now** — beautiful, engaging, public-facing. No backend/auth/real maps/AI. All data mocked.
 

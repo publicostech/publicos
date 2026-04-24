@@ -45,7 +45,7 @@ export const Header = () => {
                         <span className="relative font-serif text-white text-lg leading-none">C</span>
                     </div>
                     <div className="leading-tight">
-                        <div className="font-serif text-lg font-semibold text-[#0A192F]">CivicTrack</div>
+                        <div className="font-serif text-lg font-semibold text-[#0A192F]">PublicOS</div>
                         <div className="text-[9px] uppercase tracking-[0.2em] text-slate-500 font-semibold -mt-0.5">
                             Public Portal · India
                         </div>
