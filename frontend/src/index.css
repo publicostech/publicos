@@ -171,6 +171,15 @@ html, body {
         background: rgba(255, 255, 255, 0.85) !important;
         font-family: 'Manrope', sans-serif !important;
     }
+    .state-label-tooltip {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+    .state-label-tooltip::before {
+        display: none !important;
+    }
 }
 
 @layer base {

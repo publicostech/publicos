@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import IssueCard from "../components/shared/IssueCard";
 import LeafletIssueMap from "../components/shared/LeafletIssueMap";
+import IndiaChoropleth from "../components/shared/IndiaChoropleth";
 import {
     ISSUES, PLATFORM_STATS, LIVE_TICKER, CITY_HERO_IMAGES, TOP_CONTRIBUTORS,
 } from "../lib/mockData";
@@ -348,7 +349,7 @@ export default function Landing() {
                             </Link>
                         </div>
                         <div className="lg:col-span-7 bg-white border border-[#0A192F]/10 rounded-lg p-2 overflow-hidden">
-                            <LeafletIssueMap view="heat" height={480} />
+                            <IndiaChoropleth height={560} showLabels={true} />
                         </div>
                     </div>
                 </div>
