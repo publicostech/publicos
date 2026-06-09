@@ -8,6 +8,33 @@ import { toast } from "sonner";
 import { formatApiError } from "../lib/api";
 import BrandLogo from "../components/shared/BrandLogo";
 
+const REGISTER_VARIANTS = [
+    {
+        badge: "Founding Citizen",
+        headPrefix: "Your city is waiting",
+        headItalic: "for you.",
+        body: "Every great city starts with one resident who refused to look away. Create an account and join the citizens turning frustration into fixes — one report at a time.",
+    },
+    {
+        badge: "Join the ledger",
+        headPrefix: "Be counted",
+        headItalic: "from day one.",
+        body: "PublicOS launches in your city the moment enough citizens raise their hand. Your signup is more than an account — it's a vote for transparency in the place you call home.",
+    },
+    {
+        badge: "Citizens who showed up",
+        headPrefix: "Cities don't fix themselves.",
+        headItalic: "We do.",
+        body: "Every working streetlight, every patched road, every cleaned drain started with someone who refused to wait for someone else. That someone is about to be you.",
+    },
+    {
+        badge: "Day one matters",
+        headPrefix: "Your first report",
+        headItalic: "is closer than you think.",
+        body: "It takes ninety seconds — a photo, a few words, a pin on the map. By the time your evening tea is done, your concern is on the public record. Permanently.",
+    },
+];
+
 export default function Register() {
     const { register } = useAuth();
     const nav = useNavigate();
@@ -16,6 +43,7 @@ export default function Register() {
     const [password, setPassword] = useState("");
     const [busy, setBusy] = useState(false);
     const [err, setErr] = useState("");
+    const [variant] = useState(() => REGISTER_VARIANTS[Math.floor(Math.random() * REGISTER_VARIANTS.length)]);
 
     const submit = async (e) => {
         e.preventDefault();
@@ -72,14 +100,14 @@ export default function Register() {
 
                     <div className="relative z-10 text-white space-y-6 max-w-md ml-auto text-right">
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full">
-                            <span className="overline text-[#FF9933]">Founding Citizen</span>
+                            <span className="overline text-[#FF9933]">{variant.badge}</span>
                             <span className="w-1.5 h-1.5 rounded-full bg-[#FF9933] animate-pulse" />
                         </div>
                         <h2 className="font-serif text-3xl xl:text-4xl leading-[1.1] tracking-tight">
-                            Your city is waiting <span className="italic text-[#FF9933]">for you.</span>
+                            {variant.headPrefix} <span className="italic text-[#FF9933]">{variant.headItalic}</span>
                         </h2>
                         <p className="text-sm text-white/75 leading-relaxed">
-                            Every great city starts with one resident who refused to look away. Create an account and join the citizens turning frustration into fixes — one report at a time.
+                            {variant.body}
                         </p>
                         <div className="grid grid-cols-2 gap-3 pt-3">
                             <div className="p-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg text-left">

@@ -8,6 +8,33 @@ import { toast } from "sonner";
 import { formatApiError } from "../lib/api";
 import BrandLogo from "../components/shared/BrandLogo";
 
+const LOGIN_VARIANTS = [
+    {
+        badge: "Civic Promise",
+        headPrefix: "Welcome back,",
+        headItalic: "citizen.",
+        body: "Every pothole you photograph, every streetlight you report, every voice you raise — it all lands on a public ledger that holds someone accountable. Log in to continue the work.",
+    },
+    {
+        badge: "Welcome home",
+        headPrefix: "The city remembers",
+        headItalic: "you.",
+        body: "Your reports, your support votes, your verified closures — they're all here, waiting where you left them. Pick up exactly where the work stopped.",
+    },
+    {
+        badge: "Your ledger continues",
+        headPrefix: "Right where you",
+        headItalic: "left off.",
+        body: "Issues you supported are getting closer to resolution. Closures you requested are awaiting verification. Your civic footprint is growing — quietly, undeniably, publicly.",
+    },
+    {
+        badge: "One more report",
+        headPrefix: "Small actions,",
+        headItalic: "compounding.",
+        body: "Cities don't transform overnight; they transform one logged complaint at a time. Log in and add one more datapoint to a movement larger than any single voice.",
+    },
+];
+
 export default function Login() {
     const { login } = useAuth();
     const nav = useNavigate();
@@ -16,6 +43,7 @@ export default function Login() {
     const [password, setPassword] = useState("");
     const [busy, setBusy] = useState(false);
     const [err, setErr] = useState("");
+    const [variant] = useState(() => LOGIN_VARIANTS[Math.floor(Math.random() * LOGIN_VARIANTS.length)]);
 
     const submit = async (e) => {
         e.preventDefault();
@@ -70,13 +98,13 @@ export default function Login() {
                     <div className="relative z-10 text-white space-y-6 max-w-md">
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full">
                             <span className="w-1.5 h-1.5 rounded-full bg-[#FF9933] animate-pulse" />
-                            <span className="overline text-[#FF9933]">Civic Promise</span>
+                            <span className="overline text-[#FF9933]">{variant.badge}</span>
                         </div>
                         <h2 className="font-serif text-3xl xl:text-4xl leading-[1.1] tracking-tight">
-                            Welcome back, <span className="italic text-[#FF9933]">citizen.</span>
+                            {variant.headPrefix} <span className="italic text-[#FF9933]">{variant.headItalic}</span>
                         </h2>
                         <p className="text-sm text-white/75 leading-relaxed">
-                            Every pothole you photograph, every streetlight you report, every voice you raise — it all lands on a public ledger that holds someone accountable. Log in to continue the work.
+                            {variant.body}
                         </p>
                         <div className="grid grid-cols-2 gap-3 pt-3">
                             <div className="p-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg">

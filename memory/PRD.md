@@ -45,6 +45,7 @@ Build a modern, scalable civic-tech web platform where citizens can report local
 | 2026-02-09 | Hero pillar card upgraded — uses 4 custom 3D illustrations (orange/blue/green/purple) as crossfading backgrounds with text floating on left half. Hero layout itself unchanged. |
 | 2026-02-09 | 6-item UX revamp — colorful gradient Login/Register, Dashboard "Coming Soon" pre-launch state, Knowledge Hub real photos, How-It-Works mobile tightening, mobile responsiveness pass, hash-aware cross-route waitlist scroll. |
 | 2026-02-09 | Login/Register split-screen redesign — dark navy LEFT panel with the user's 3D civic illustration ("Welcome back, citizen." / "Your city is waiting for you."), feature pills (Anonymous / Auditable on login; 90 seconds / Free forever on signup), white form panel on right. Mobile stacks form-first with pastel gradient. |
+| 2026-02-09 | Rotating copy variants — Login + Register left panel cycles through 4 distinct headlines/body pairs per page on each visit (lazy useState initializer). Same illustration, fresh conversation every time. |
 
 ## 7. Backlog
 ### P1
