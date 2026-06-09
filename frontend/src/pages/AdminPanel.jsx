@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Shield, Users, FileCheck2, CheckCircle2, XCircle, Clock, Loader2, BarChart3, RotateCcw, Landmark } from "lucide-react";
+import { Shield, Users, FileCheck2, CheckCircle2, XCircle, Clock, Loader2, BarChart3, RotateCcw, Landmark, Mail, MapPin, Sparkles } from "lucide-react";
 import { api, formatApiError } from "../lib/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { StatusBadge } from "../components/shared/StatusBadge";
@@ -17,6 +17,7 @@ export default function AdminPanel() {
     const [allIssues, setAllIssues] = useState([]);
     const [users, setUsers] = useState([]);
     const [officials, setOfficials] = useState([]);
+    const [waitlist, setWaitlist] = useState(null);
     const [analytics, setAnalytics] = useState(null);
     const [loading, setLoading] = useState(true);
     const [busy, setBusy] = useState("");
@@ -24,12 +25,13 @@ export default function AdminPanel() {
     const load = async () => {
         setLoading(true);
         try {
-            const [pending, all, u, a, off] = await Promise.all([
+            const [pending, all, u, a, off, wl] = await Promise.all([
                 api.get("/admin/issues", { params: { approval: "pending" } }).then((r) => r.data),
                 api.get("/admin/issues").then((r) => r.data),
                 api.get("/admin/users").then((r) => r.data),
                 api.get("/admin/analytics").then((r) => r.data),
                 api.get("/admin/officials").then((r) => r.data),
+                api.get("/admin/waitlist").then((r) => r.data).catch(() => ({ total: 0, entries: [], by_city: [] })),
             ]);
             setPendingIssues(pending);
             setAllIssues(all);
@@ -37,6 +39,7 @@ export default function AdminPanel() {
             setUsers(u);
             setAnalytics(a);
             setOfficials(off);
+            setWaitlist(wl);
         } catch (e) {
             toast.error(formatApiError(e));
         } finally {
@@ -127,6 +130,9 @@ export default function AdminPanel() {
                     <TabsTrigger value="issues" className="data-[state=active]:bg-[#0A192F] data-[state=active]:text-white px-3 sm:px-4 py-2" data-testid="admin-tab-issues">All issues</TabsTrigger>
                     <TabsTrigger value="users" className="data-[state=active]:bg-[#0A192F] data-[state=active]:text-white px-3 sm:px-4 py-2" data-testid="admin-tab-users">Users</TabsTrigger>
                     <TabsTrigger value="officials" className="data-[state=active]:bg-[#0A192F] data-[state=active]:text-white px-3 sm:px-4 py-2" data-testid="admin-tab-officials">Officials</TabsTrigger>
+                    <TabsTrigger value="waitlist" className="data-[state=active]:bg-[#0A192F] data-[state=active]:text-white px-3 sm:px-4 py-2" data-testid="admin-tab-waitlist">
+                        Waitlist {waitlist?.total > 0 && <span className="ml-1.5 bg-[#FF9933] text-white text-[10px] font-bold rounded-full px-1.5 py-0.5">{waitlist.total}</span>}
+                    </TabsTrigger>
                     <TabsTrigger value="analytics" className="data-[state=active]:bg-[#0A192F] data-[state=active]:text-white px-3 sm:px-4 py-2" data-testid="admin-tab-analytics">Analytics</TabsTrigger>
                 </TabsList>
 
@@ -340,6 +346,67 @@ export default function AdminPanel() {
                                         ))}
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    )}
+                </TabsContent>
+
+                {/* Waitlist */}
+                <TabsContent value="waitlist" className="mt-6">
+                    {!waitlist || waitlist.total === 0 ? (
+                        <div className="bg-white border border-dashed border-[#0A192F]/15 rounded-lg p-10 text-center" data-testid="waitlist-empty">
+                            <Mail size={28} className="mx-auto text-slate-400 mb-3" />
+                            <div className="font-serif text-xl">No waitlist signups yet.</div>
+                            <p className="text-sm text-slate-500 mt-1">As founding citizens join from the landing page, they&apos;ll appear here.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-5">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div className="bg-white border border-[#0A192F]/10 rounded-lg p-5">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Sparkles size={14} className="text-[#FF9933]" />
+                                        <div className="overline text-slate-500">Total signups</div>
+                                    </div>
+                                    <div className="font-serif text-4xl tracking-tight text-[#0A192F]" data-testid="waitlist-total">{waitlist.total.toLocaleString()}</div>
+                                </div>
+                                <div className="md:col-span-2 bg-white border border-[#0A192F]/10 rounded-lg p-5">
+                                    <div className="overline text-slate-500 mb-3">Top cities by demand</div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {waitlist.by_city.slice(0, 10).map((c) => (
+                                            <div key={c.city} className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#FAF9F6] border border-[#0A192F]/10 rounded-full text-xs" data-testid={`waitlist-city-${c.city}`}>
+                                                <MapPin size={11} className="text-[#FF9933]" />
+                                                <span className="text-[#0A192F] font-semibold">{c.city}</span>
+                                                <span className="font-mono text-slate-500">{c.count}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-white border border-[#0A192F]/10 rounded-lg overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm" data-testid="waitlist-table">
+                                        <thead className="bg-[#FAF9F6] border-b border-[#0A192F]/10">
+                                            <tr className="text-xs uppercase tracking-widest text-slate-500">
+                                                <th className="text-left p-3 sm:p-4">#</th>
+                                                <th className="text-left p-3 sm:p-4">Email</th>
+                                                <th className="text-left p-3 sm:p-4">City</th>
+                                                <th className="text-left p-3 sm:p-4">Source</th>
+                                                <th className="text-left p-3 sm:p-4">Joined</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {waitlist.entries.map((w) => (
+                                                <tr key={w.email} className="border-b border-[#0A192F]/5 hover:bg-[#FAF9F6]">
+                                                    <td className="p-3 sm:p-4 font-mono text-xs text-[#FF9933]">#{w.position}</td>
+                                                    <td className="p-3 sm:p-4 font-mono text-xs">{w.email}</td>
+                                                    <td className="p-3 sm:p-4 text-sm">{w.city}</td>
+                                                    <td className="p-3 sm:p-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">{w.source}</td>
+                                                    <td className="p-3 sm:p-4 text-xs text-slate-500">{new Date(w.joined_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     )}

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import IndiaChoropleth from "../components/shared/IndiaChoropleth";
 import LiveIssuePanel from "../components/shared/LiveIssuePanel";
+import WaitlistStrip from "../components/shared/WaitlistStrip";
 import { useLang } from "../lib/i18n";
 
 export default function Landing() {
@@ -452,6 +453,9 @@ export default function Landing() {
                     </div>
                 </div>
             </section>
+
+            {/* WAITLIST — Founding citizens */}
+            <WaitlistStrip />
 
             {/* FINAL CTA — Dark navy with strong saffron CTA */}
             <section className="max-w-7xl mx-auto px-6 md:px-12 py-12 md:py-16">

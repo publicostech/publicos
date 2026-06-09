@@ -259,6 +259,11 @@ class AIClassifyIn(BaseModel):
     title: str
     description: str = ""
 
+class WaitlistIn(BaseModel):
+    email: EmailStr
+    city: str = Field(min_length=2, max_length=80)
+    source: Optional[str] = "landing"
+
 class ResetTokenIn(BaseModel):
     token: str
 
@@ -546,6 +551,44 @@ async def ai_classify(body: AIClassifyIn, user: dict = Depends(get_current_user)
     except Exception as e:
         logger.error(f"AI classify failed: {e}")
         return {"category": None, "error": str(e)}
+
+# ------------------------------------------------------------------
+# Founding-citizen waitlist
+# ------------------------------------------------------------------
+@api.post("/waitlist")
+async def join_waitlist(body: WaitlistIn):
+    email = body.email.lower().strip()
+    city = body.city.strip()
+    now = datetime.now(timezone.utc)
+    existing = await db.waitlist.find_one({"email": email})
+    if existing:
+        # Idempotent: update city if changed, keep first-joined timestamp
+        await db.waitlist.update_one(
+            {"email": email},
+            {"$set": {"city": city, "last_seen_at": now}},
+        )
+        position = existing.get("position", 0)
+        return {"ok": True, "already_joined": True, "position": position, "city": city}
+    position = (await db.waitlist.count_documents({})) + 1
+    await db.waitlist.insert_one({
+        "email": email,
+        "city": city,
+        "source": body.source or "landing",
+        "joined_at": now,
+        "last_seen_at": now,
+        "position": position,
+    })
+    return {"ok": True, "already_joined": False, "position": position, "city": city}
+
+@api.get("/admin/waitlist")
+async def admin_waitlist(_a: dict = Depends(require_admin)):
+    cursor = db.waitlist.find({}, {"_id": 0}).sort("joined_at", -1).limit(1000)
+    entries = [doc async for doc in cursor]
+    total = await db.waitlist.count_documents({})
+    # by_city aggregation (top 20)
+    pipe = [{"$group": {"_id": "$city", "count": {"$sum": 1}}}, {"$sort": {"count": -1}}, {"$limit": 20}]
+    by_city = [{"city": d["_id"], "count": d["count"]} async for d in db.waitlist.aggregate(pipe)]
+    return {"total": total, "entries": entries, "by_city": by_city}
 
 # ------------------------------------------------------------------
 # Issues
@@ -1041,6 +1084,8 @@ async def startup():
     await db.password_reset_tokens.create_index("token", unique=True)
     await db.comments.create_index("issue_id")
     await db.files.create_index("file_id", unique=True)
+    await db.waitlist.create_index("email", unique=True)
+    await db.waitlist.create_index("joined_at")
     try:
         await asyncio.to_thread(init_storage)
         logger.info("Object storage initialized")

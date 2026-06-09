@@ -1,0 +1,32 @@
+{
+  "summary": "End-to-end test of founding-citizen waitlist feature — backend (9/9 pytest passing) + frontend landing strip + admin Waitlist tab + i18n. POST /api/waitlist correctly handles happy path, idempotent resubmits (same position, updated city, already_joined=true), 422 on invalid email and short city. GET /api/admin/waitlist requires admin (citizen → 403; unauth → 401/403), returns {total, entries, by_city}, excludes mongo _id. Unique index on db.waitlist.email prevents duplicate insertion errors even under hammered idempotent calls. Frontend WaitlistStrip renders between Community Champions and Final CTA (DOM order verified), all four data-testids present (waitlist-section/form/email-input/city-input/submit). Happy path shows success card 'You're in!' + 'FOUNDING CITIZEN #N' chip + city name; duplicate path shows 'Welcome back — we already had you on the list. We've updated your city to Mumbai.'. Hindi/Telugu eyebrows + Hindi city placeholder localised. Admin panel /admin → Waitlist tab renders waitlist-total=6, three top-city chips (Mumbai 3 / Pune 2 / Bengaluru Urban 1), 6 rows in waitlist-table with #position / email / city / source=LANDING / joined date.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_waitlist.py",
+    "/app/test_reports/pytest/pytest_waitlist.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "POST /api/waitlist is unauthenticated and unrate-limited — easy to spam-pollute the founding-citizen list. Recommend adding a lightweight rate limiter (e.g. SlowAPI by IP, ~5/min) and/or hCaptcha for production launch.",
+    "Idempotent path returns existing.get('position', 0) — if a legacy row was inserted before the 'position' field was added, this would surface as #0 in the UI. Defensive fallback to count_documents+1 would be safer.",
+    "by_city aggregation groups by exact city string (case-sensitive, no trim). 'Pune ' and 'pune' would split into separate buckets. Consider $toLower or storing a normalised city slug at write time.",
+    "WaitlistStrip.jsx duplicate-submission UX: once 'done' state is set, the user can't change city without a full page reload — there's no 'edit' or 'reset' affordance. Minor, but a 'Update my city' link would be nice.",
+    "AdminPanel waitlist tab does not paginate (limit 1000 hard-coded server-side). Acceptable for early-stage launch volumes, but plan for cursor-based pagination once list crosses a few thousand entries.",
+    "Pre-existing (not introduced here): two 401 console errors on landing page from an unauthenticated /auth/me-style probe — should be 401-silent (caught and not console.error'd). Noted in iteration_7 already."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_waitlist.py (new)"
+  ],
+  "success_rate": { "backend": "100% (9/9)", "frontend": "100%" },
+  "test_credentials": "admin@publicos.in / admin@1234 (admin), citizen1@test.com / test1234 (citizen role 403 check)",
+  "seed_data_creation": "4 fresh TEST_<uuid>@gmail.com signups created during backend pytest run (Pune/Mumbai/Delhi cities) + 1 frontend happy-path signup newuser_<ts>@gmail.com. Existing seed founder@gmail.com (Bengaluru Urban) + jane@example.com (Mumbai) reused for idempotency check. db.waitlist total after run: 6.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Waitlist feature is fully verified at backend + frontend + i18n + admin levels. backend_test.py at /app/backend/tests/test_waitlist.py is the regression suite — run `pytest /app/backend/tests/test_waitlist.py -v` to re-verify. TEST_ prefix is used on test emails; cleanup can be done via `db.waitlist.delete_many({email:/^TEST_/})` if needed. Test data left in DB will not break future tests because the suite always generates fresh uuid emails and only asserts that idempotent paths return already_joined=true on the seeded founder@gmail.com / jane@example.com rows. Note Pydantic EmailStr requires deliverable domain — use gmail.com/example.com/outlook.com in any future tests (.test TLD is rejected).",
+  "rca of the issue": "n/a (no defects)"
+}
