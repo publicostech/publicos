@@ -2,13 +2,12 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-    ArrowRight, ShieldCheck, Users, CheckCircle2, Eye, BarChart3,
+    ArrowRight, ShieldCheck, Users, Eye, BarChart3,
     Construction, Lightbulb, Trash2, Droplets, AlertTriangle, TreePine, Train, MapPin,
     FileText, MessagesSquare, Activity, HandHeart, Sparkles, Award, Building2, Tractor, Landmark, Cpu,
 } from "lucide-react";
 import IndiaChoropleth from "../components/shared/IndiaChoropleth";
 import LiveIssuePanel from "../components/shared/LiveIssuePanel";
-import { CITY_HERO_IMAGES } from "../lib/mockData";
 import { useLang } from "../lib/i18n";
 
 export default function Landing() {
@@ -172,84 +171,113 @@ export default function Landing() {
                 </div>
             </section>
 
-            {/* HOW IT WORKS — 4 steps */}
-            <section className="bg-white border-y border-[#0A192F]/10">
+            {/* HOW IT WORKS — 4 steps with colorful cards */}
+            <section className="bg-[#FAF9F6] border-y border-[#0A192F]/5">
                 <div className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
-                    <div className="max-w-2xl mb-12">
-                        <div className="overline text-[#FF9933] mb-3">{t("landing.loop_eyebrow")}</div>
-                        <h2 className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F]">
-                            {t("landing.loop_title")}
-                        </h2>
-                        <p className="text-slate-600 leading-relaxed mt-4 max-w-xl">
-                            {t("landing.loop_sub")}
-                        </p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {[
-                            { n: "01", icon: FileText, titleKey: "landing.step1_title", textKey: "landing.step1_text" },
-                            { n: "02", icon: MessagesSquare, titleKey: "landing.step2_title", textKey: "landing.step2_text" },
-                            { n: "03", icon: Activity, titleKey: "landing.step3_title", textKey: "landing.step3_text" },
-                            { n: "04", icon: HandHeart, titleKey: "landing.step4_title", textKey: "landing.step4_text" },
-                        ].map((step) => (
-                            <div
-                                key={step.n}
-                                data-testid={`how-step-${step.n}`}
-                                className="bg-[#FAF9F6] border border-[#0A192F]/10 rounded-lg p-7 hover:border-[#0A192F]/30 hover:-translate-y-1 transition-all"
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start mb-12">
+                        <div className="lg:col-span-5">
+                            <div className="overline text-[#FF9933] mb-3">{t("landing.loop_eyebrow")}</div>
+                            <h2 className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F] leading-tight">
+                                {t("landing.loop_title")}
+                            </h2>
+                            <p className="text-slate-600 leading-relaxed mt-5 max-w-md">
+                                {t("landing.loop_sub")}
+                            </p>
+                            <Link
+                                to="/submit"
+                                className="inline-flex items-center gap-2 mt-8 bg-[#FF9933] text-white font-semibold px-5 py-3 rounded-lg hover:bg-[#0A192F] transition-colors"
+                                data-testid="how-learn-more"
                             >
-                                <div className="flex items-center justify-between mb-7">
-                                    <span className="font-mono text-sm text-slate-400">{step.n}</span>
-                                    <step.icon size={20} strokeWidth={1.5} className="text-[#FF9933]" />
+                                Learn More <ArrowRight size={14} />
+                            </Link>
+                        </div>
+                        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {[
+                                { n: 1, icon: FileText, titleKey: "landing.step1_title", textKey: "landing.step1_text", bg: "#FFEAD9", badge: "#FF6B35" },
+                                { n: 2, icon: MessagesSquare, titleKey: "landing.step2_title", textKey: "landing.step2_text", bg: "#FFF4CC", badge: "#F59E0B" },
+                                { n: 3, icon: Activity, titleKey: "landing.step3_title", textKey: "landing.step3_text", bg: "#D4F5E1", badge: "#10B981" },
+                                { n: 4, icon: HandHeart, titleKey: "landing.step4_title", textKey: "landing.step4_text", bg: "#DAEFFB", badge: "#3B82F6" },
+                            ].map((step) => (
+                                <div
+                                    key={step.n}
+                                    data-testid={`how-step-0${step.n}`}
+                                    className="relative rounded-2xl p-6 pt-10 hover:-translate-y-1 transition-all duration-300 hover:shadow-lg min-h-[260px] flex flex-col"
+                                    style={{ background: step.bg }}
+                                >
+                                    <div
+                                        className="absolute -top-3 left-5 w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-base shadow-md border-4 border-white"
+                                        style={{ background: step.badge }}
+                                    >
+                                        {step.n}
+                                    </div>
+                                    <h3 className="font-serif text-lg text-[#0A192F] leading-tight mb-2 mt-1">
+                                        {t(step.titleKey)}
+                                    </h3>
+                                    <p className="text-xs text-slate-700/80 leading-relaxed flex-1">{t(step.textKey)}</p>
+                                    <div className="mt-4 flex justify-end">
+                                        <div
+                                            className="w-12 h-12 rounded-xl flex items-center justify-center bg-white/60"
+                                            style={{ color: step.badge }}
+                                        >
+                                            <step.icon size={22} strokeWidth={1.75} />
+                                        </div>
+                                    </div>
                                 </div>
-                                <h3 className="font-serif text-xl mb-2 text-[#0A192F] leading-tight">
-                                    {t(step.titleKey)}
-                                </h3>
-                                <p className="text-sm text-slate-600 leading-relaxed">{t(step.textKey)}</p>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </div>
             </section>
 
             {/* ISSUES THAT MATTER MOST — Community Focus */}
-            <section className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28" data-testid="topics-section">
-                <div className="max-w-2xl mb-12">
-                    <div className="overline text-[#FF9933] mb-3">{t("landing.topics_eyebrow")}</div>
-                    <h2 className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F]">
-                        {t("landing.topics_title")}
-                    </h2>
-                    <p className="text-slate-600 leading-relaxed mt-4">
-                        {t("landing.topics_sub")}
-                    </p>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                    {[
-                        { icon: Construction, k: "topic_roads", color: "#0A192F" },
-                        { icon: Lightbulb, k: "topic_lights", color: "#F59E0B" },
-                        { icon: Trash2, k: "topic_waste", color: "#138808" },
-                        { icon: Droplets, k: "topic_water", color: "#3B82F6" },
-                        { icon: AlertTriangle, k: "topic_traffic", color: "#dc2626" },
-                        { icon: MapPin, k: "topic_public_spaces", color: "#8B5CF6" },
-                        { icon: TreePine, k: "topic_env", color: "#059669" },
-                        { icon: Train, k: "topic_transport", color: "#FF9933" },
-                    ].map((tp) => (
-                        <Link
-                            key={tp.k}
-                            to="/feed"
-                            data-testid={`topic-${tp.k}`}
-                            className="group bg-white border border-[#0A192F]/10 rounded-lg p-5 hover:border-[#0A192F] hover:-translate-y-1 transition-all"
-                        >
-                            <div
-                                className="w-11 h-11 rounded-md flex items-center justify-center mb-4"
-                                style={{ background: tp.color + "12", color: tp.color }}
+            <section className="bg-white border-y border-[#0A192F]/5">
+                <div className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28" data-testid="topics-section">
+                    <div className="max-w-2xl mb-12 text-center mx-auto">
+                        <div className="overline text-[#FF9933] mb-3">{t("landing.topics_eyebrow")}</div>
+                        <h2 className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F]">
+                            {t("landing.topics_title")}
+                        </h2>
+                        <p className="text-slate-600 leading-relaxed mt-4">
+                            {t("landing.topics_sub")}
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4">
+                        {[
+                            { icon: Construction, k: "topic_roads", color: "#FF6B35", bg: "#FFEAD9" },
+                            { icon: Lightbulb, k: "topic_lights", color: "#F59E0B", bg: "#FFF4CC" },
+                            { icon: Trash2, k: "topic_waste", color: "#10B981", bg: "#D4F5E1" },
+                            { icon: Droplets, k: "topic_water", color: "#3B82F6", bg: "#DAEFFB" },
+                            { icon: AlertTriangle, k: "topic_traffic", color: "#8B5CF6", bg: "#E8DCFB" },
+                            { icon: MapPin, k: "topic_public_spaces", color: "#138808", bg: "#D4F5DC" },
+                            { icon: TreePine, k: "topic_env", color: "#059669", bg: "#CFEFE0" },
+                            { icon: Train, k: "topic_transport", color: "#EF4444", bg: "#FFE0E0" },
+                        ].map((tp) => (
+                            <Link
+                                key={tp.k}
+                                to="/feed"
+                                data-testid={`topic-${tp.k}`}
+                                className="group rounded-2xl p-5 md:p-6 hover:-translate-y-1 transition-all duration-300 hover:shadow-lg flex flex-col items-center text-center"
+                                style={{ background: tp.bg }}
                             >
-                                <tp.icon size={20} strokeWidth={1.5} />
-                            </div>
-                            <div className="font-serif text-base text-[#0A192F] leading-tight">{t(`landing.${tp.k}`)}</div>
-                            <div className="mt-3 inline-flex items-center gap-1 text-[10px] uppercase tracking-widest font-semibold text-slate-400 group-hover:text-[#FF9933]">
-                                Explore <ArrowRight size={10} />
-                            </div>
+                                <div
+                                    className="w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center mb-4 bg-white/60 backdrop-blur-sm shadow-sm group-hover:scale-110 transition-transform"
+                                    style={{ color: tp.color }}
+                                >
+                                    <tp.icon size={26} strokeWidth={2} />
+                                </div>
+                                <div className="font-semibold text-sm md:text-base text-[#0A192F] leading-tight">{t(`landing.${tp.k}`)}</div>
+                            </Link>
+                        ))}
+                    </div>
+                    <div className="mt-12 text-center">
+                        <Link
+                            to="/feed"
+                            data-testid="topics-explore-all"
+                            className="inline-flex items-center gap-2 bg-white border-2 border-[#0A192F]/10 text-[#0A192F] font-semibold px-6 py-3 rounded-lg hover:border-[#FF9933] hover:text-[#FF9933] transition-colors"
+                        >
+                            Explore All Categories <ArrowRight size={14} />
                         </Link>
-                    ))}
+                    </div>
                 </div>
             </section>
 
@@ -287,104 +315,183 @@ export default function Landing() {
 
             {/* BUILT FOR EVERY COMMUNITY */}
             <section className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28" data-testid="community-section">
-                <div className="max-w-2xl mb-12">
-                    <div className="overline text-[#FF9933] mb-3">{t("landing.cities_eyebrow")}</div>
-                    <h2 className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F]">
-                        {t("landing.cities_title")}
-                    </h2>
-                    <p className="text-slate-600 leading-relaxed mt-4">
-                        {t("landing.cities_sub")}
-                    </p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <CommunityCard
-                        icon={Tractor}
-                        title={t("landing.community_village_title")}
-                        desc={t("landing.community_village_desc")}
-                        bg={CITY_HERO_IMAGES.bangalore}
-                        accent="#138808"
-                        testid="community-village"
-                    />
-                    <CommunityCard
-                        icon={Building2}
-                        title={t("landing.community_town_title")}
-                        desc={t("landing.community_town_desc")}
-                        bg={CITY_HERO_IMAGES.delhi}
-                        accent="#FF9933"
-                        testid="community-town"
-                    />
-                    <CommunityCard
-                        icon={Landmark}
-                        title={t("landing.community_municipal_title")}
-                        desc={t("landing.community_municipal_desc")}
-                        bg={CITY_HERO_IMAGES.mumbai}
-                        accent="#3B82F6"
-                        testid="community-municipal"
-                    />
-                    <CommunityCard
-                        icon={Cpu}
-                        title={t("landing.community_smart_title")}
-                        desc={t("landing.community_smart_desc")}
-                        bg={CITY_HERO_IMAGES.bangalore}
-                        accent="#8B5CF6"
-                        testid="community-smart"
-                    />
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center mb-12">
+                    <div className="lg:col-span-5">
+                        <div className="overline text-[#FF9933] mb-3">{t("landing.cities_eyebrow")}</div>
+                        <h2 className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F] leading-tight">
+                            {t("landing.cities_title")}
+                        </h2>
+                        <p className="text-slate-600 leading-relaxed mt-5">
+                            {t("landing.cities_sub")}
+                        </p>
+                    </div>
+                    <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <CommunityCard
+                            icon={Tractor}
+                            title={t("landing.community_village_title")}
+                            desc={t("landing.community_village_desc")}
+                            accent="#10B981"
+                            bg="#D4F5E1"
+                            testid="community-village"
+                        />
+                        <CommunityCard
+                            icon={Building2}
+                            title={t("landing.community_town_title")}
+                            desc={t("landing.community_town_desc")}
+                            accent="#FF6B35"
+                            bg="#FFEAD9"
+                            testid="community-town"
+                        />
+                        <CommunityCard
+                            icon={Landmark}
+                            title={t("landing.community_municipal_title")}
+                            desc={t("landing.community_municipal_desc")}
+                            accent="#8B5CF6"
+                            bg="#E8DCFB"
+                            testid="community-municipal"
+                        />
+                        <CommunityCard
+                            icon={Cpu}
+                            title={t("landing.community_smart_title")}
+                            desc={t("landing.community_smart_desc")}
+                            accent="#3B82F6"
+                            bg="#DAEFFB"
+                            testid="community-smart"
+                        />
+                    </div>
                 </div>
             </section>
 
-            {/* COMMUNITY CHAMPIONS — replaces leaderboard with real users */}
-            <section className="bg-[#0A192F] text-white" data-testid="champions-section">
+            {/* COMMUNITY CHAMPIONS — light themed, colorful circular icons */}
+            <section className="bg-white border-y border-[#0A192F]/5" data-testid="champions-section">
                 <div className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-                        <div className="lg:col-span-5">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+                        <div className="lg:col-span-6">
                             <div className="overline text-[#FF9933] mb-3">{t("landing.champions_eyebrow")}</div>
-                            <h2 className="font-serif text-4xl md:text-5xl tracking-tight leading-tight">
+                            <h2 className="font-serif text-4xl md:text-5xl tracking-tight leading-tight text-[#0A192F]">
                                 {t("landing.champions_title")}
                             </h2>
-                            <p className="text-white/70 leading-relaxed mt-5">
+                            <p className="text-slate-600 leading-relaxed mt-5">
                                 {t("landing.champions_sub")}
                             </p>
-                            <div className="mt-8 inline-flex items-center gap-2 px-4 py-2 border border-[#FF9933]/40 rounded-full bg-[#FF9933]/10">
-                                <Sparkles size={14} className="text-[#FF9933]" />
-                                <span className="text-xs font-semibold text-[#FF9933] uppercase tracking-widest">{t("landing.champ_launching")}</span>
+
+                            <div className="mt-10 flex flex-wrap items-start gap-x-7 gap-y-6">
+                                {[
+                                    { icon: Award, key: "champ_contrib", color: "#FF6B35", bg: "#FFEAD9" },
+                                    { icon: Users, key: "champ_advocates", color: "#10B981", bg: "#D4F5E1" },
+                                    { icon: HandHeart, key: "champ_volunteers", color: "#EF4444", bg: "#FFE0E0" },
+                                    { icon: Sparkles, key: "champ_changemakers", color: "#8B5CF6", bg: "#E8DCFB" },
+                                    { icon: Building2, key: "champ_social", color: "#3B82F6", bg: "#DAEFFB" },
+                                ].map((c) => (
+                                    <div
+                                        key={c.key}
+                                        data-testid={`champ-${c.key}`}
+                                        className="flex flex-col items-center text-center group cursor-default w-[100px]"
+                                    >
+                                        <div
+                                            className="w-16 h-16 rounded-full flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform"
+                                            style={{ background: c.bg, color: c.color }}
+                                        >
+                                            <c.icon size={24} strokeWidth={2} />
+                                        </div>
+                                        <div className="text-[11px] font-semibold text-[#0A192F] leading-tight">
+                                            {t(`landing.${c.key}`)}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
+
+                            <Link
+                                to="/feed"
+                                className="inline-flex items-center gap-2 mt-10 bg-white border-2 border-[#0A192F]/15 text-[#0A192F] font-semibold px-5 py-3 rounded-lg hover:border-[#FF9933] hover:text-[#FF9933] transition-colors"
+                                data-testid="champions-cta"
+                            >
+                                View Leaderboard <ArrowRight size={14} />
+                            </Link>
                         </div>
-                        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <ChampionCategory icon={Award} title={t("landing.champ_contrib")} sub={t("landing.champ_be_first")} />
-                            <ChampionCategory icon={Users} title={t("landing.champ_advocates")} sub={t("landing.champ_be_first")} />
-                            <ChampionCategory icon={HandHeart} title={t("landing.champ_volunteers")} sub={t("landing.champ_be_first")} />
-                            <ChampionCategory icon={Sparkles} title={t("landing.champ_changemakers")} sub={t("landing.champ_be_first")} />
-                            <ChampionCategory icon={Building2} title={t("landing.champ_social")} sub={t("landing.champ_be_first")} fullWidth />
+
+                        {/* Knowledge Hub teaser — Insights & Stories */}
+                        <div className="lg:col-span-6">
+                            <div className="overline text-[#FF9933] mb-3">Insights & Stories</div>
+                            <h2 className="font-serif text-3xl md:text-4xl tracking-tight leading-tight text-[#0A192F] mb-4">
+                                Learn. Engage. Take Action.
+                            </h2>
+                            <p className="text-sm text-slate-600 leading-relaxed mb-6">
+                                Explore articles, success stories, civic guides, and community insights designed to help citizens create meaningful impact.
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                {[
+                                    { tag: "Civic Education", title: "Understanding Your Civic Rights", bg: "#FFEAD9", tagColor: "#FF6B35" },
+                                    { tag: "Success Story", title: "How Communities Created Change", bg: "#D4F5E1", tagColor: "#10B981" },
+                                    { tag: "Smart Governance", title: "The Future of Transparent Cities", bg: "#DAEFFB", tagColor: "#3B82F6" },
+                                ].map((a) => (
+                                    <div
+                                        key={a.title}
+                                        data-testid={`hub-${a.tag.toLowerCase().replace(/\s+/g, "-")}`}
+                                        className="rounded-xl overflow-hidden bg-[#FAF9F6] border border-[#0A192F]/5 hover:-translate-y-1 transition-all duration-300 hover:shadow-md flex flex-col"
+                                    >
+                                        <div className="aspect-[5/3] flex items-center justify-center" style={{ background: a.bg }}>
+                                            <Sparkles size={28} style={{ color: a.tagColor }} strokeWidth={1.75} />
+                                        </div>
+                                        <div className="p-4 flex-1 flex flex-col">
+                                            <span
+                                                className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded self-start mb-2"
+                                                style={{ background: a.bg, color: a.tagColor }}
+                                            >
+                                                {a.tag}
+                                            </span>
+                                            <div className="font-serif text-sm text-[#0A192F] leading-tight">{a.title}</div>
+                                            <div className="mt-3 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest" style={{ color: a.tagColor }}>
+                                                Read More <ArrowRight size={10} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* FINAL CTA */}
-            <section className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
-                <div className="bg-[#FAF9F6] border border-[#0A192F]/15 rounded-lg p-10 md:p-16 text-center">
-                    <CheckCircle2 size={28} strokeWidth={1.5} className="mx-auto text-emerald-700 mb-4" />
-                    <h2 className="font-serif text-4xl md:text-6xl tracking-tight text-[#0A192F] max-w-3xl mx-auto leading-tight">
-                        {t("landing.cta_title")}
-                    </h2>
-                    <p className="text-slate-600 mt-5 max-w-2xl mx-auto leading-relaxed">
-                        {t("landing.cta_sub")}
-                    </p>
-                    <div className="mt-8 flex flex-wrap gap-3 justify-center">
-                        <Link
-                            to="/submit"
-                            data-testid="cta-final-report"
-                            className="inline-flex items-center gap-2 bg-[#0A192F] text-white font-semibold px-6 py-3.5 rounded-md hover:bg-[#FF9933] transition-colors"
-                        >
-                            {t("landing.cta_primary")} <ArrowRight size={15} />
-                        </Link>
-                        <Link
-                            to="/register"
-                            data-testid="cta-final-join"
-                            className="inline-flex items-center gap-2 bg-white border border-[#0A192F]/20 text-[#0A192F] font-semibold px-6 py-3.5 rounded-md hover:border-[#0A192F]"
-                        >
-                            {t("landing.cta_secondary")}
-                        </Link>
+            {/* FINAL CTA — Dark navy with strong saffron CTA */}
+            <section className="max-w-7xl mx-auto px-6 md:px-12 py-12 md:py-16">
+                <div className="relative bg-[#0A192F] rounded-2xl overflow-hidden p-10 md:p-14">
+                    {/* Subtle city skyline pattern */}
+                    <div
+                        className="absolute inset-0 opacity-[0.06] pointer-events-none"
+                        style={{
+                            backgroundImage:
+                                "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 50' xmlns='http://www.w3.org/2000/svg' fill='%23FF9933'%3E%3Crect x='10' y='25' width='8' height='25'/%3E%3Crect x='22' y='15' width='12' height='35'/%3E%3Crect x='38' y='28' width='6' height='22'/%3E%3Crect x='48' y='10' width='14' height='40'/%3E%3Crect x='66' y='22' width='10' height='28'/%3E%3Crect x='80' y='5' width='8' height='45'/%3E%3Crect x='92' y='20' width='12' height='30'/%3E%3Crect x='108' y='28' width='8' height='22'/%3E%3Crect x='120' y='12' width='10' height='38'/%3E%3Crect x='134' y='22' width='14' height='28'/%3E%3Crect x='152' y='8' width='8' height='42'/%3E%3Crect x='164' y='25' width='12' height='25'/%3E%3Crect x='180' y='18' width='10' height='32'/%3E%3C/svg%3E\")",
+                            backgroundSize: "100% auto",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "bottom right",
+                        }}
+                    />
+                    <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                        <div className="lg:col-span-7 text-white">
+                            <h2 className="font-serif text-3xl md:text-5xl tracking-tight leading-[1.1] mb-5">
+                                {t("landing.cta_title")}
+                            </h2>
+                            <p className="text-white/70 text-sm md:text-base max-w-2xl leading-relaxed">
+                                {t("landing.cta_sub")}
+                            </p>
+                        </div>
+                        <div className="lg:col-span-5 flex flex-wrap gap-3 lg:justify-end">
+                            <Link
+                                to="/submit"
+                                data-testid="cta-final-report"
+                                className="inline-flex items-center gap-2 bg-[#FF9933] text-white font-semibold px-6 py-3.5 rounded-lg hover:bg-[#FF7A00] transition-colors shadow-lg"
+                            >
+                                {t("landing.cta_primary")} <ArrowRight size={15} />
+                            </Link>
+                            <Link
+                                to="/register"
+                                data-testid="cta-final-join"
+                                className="inline-flex items-center gap-2 bg-white text-[#0A192F] font-semibold px-6 py-3.5 rounded-lg hover:bg-[#FAF9F6] transition-colors"
+                            >
+                                {t("landing.cta_secondary")}
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -423,21 +530,18 @@ const CoverageCount = ({ icon: Icon, label }) => (
 const CommunityCard = ({ icon: Icon, title, desc, bg, accent, testid }) => (
     <div
         data-testid={testid}
-        className="relative rounded-lg overflow-hidden aspect-[4/5] group cursor-pointer"
+        className="group rounded-2xl p-6 hover:-translate-y-1 transition-all duration-300 hover:shadow-lg flex items-start gap-4"
+        style={{ background: bg }}
     >
-        <img src={bg} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0A192F] via-[#0A192F]/60 to-[#0A192F]/10" />
-        <div className="absolute inset-0 p-6 flex flex-col justify-between text-white">
-            <div
-                className="w-10 h-10 rounded-md flex items-center justify-center"
-                style={{ background: accent + "33", border: `1px solid ${accent}` }}
-            >
-                <Icon size={18} strokeWidth={1.75} style={{ color: "white" }} />
-            </div>
-            <div>
-                <div className="font-serif text-2xl mb-1.5 leading-tight">{title}</div>
-                <div className="text-xs text-white/75 leading-relaxed">{desc}</div>
-            </div>
+        <div
+            className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0 bg-white/70 backdrop-blur-sm shadow-sm"
+            style={{ color: accent }}
+        >
+            <Icon size={26} strokeWidth={1.75} />
+        </div>
+        <div className="flex-1 min-w-0">
+            <div className="font-serif text-lg md:text-xl text-[#0A192F] leading-tight mb-1.5" style={{ color: accent }}>{title}</div>
+            <div className="text-xs text-slate-700/80 leading-relaxed">{desc}</div>
         </div>
     </div>
 );
@@ -456,3 +560,5 @@ const ChampionCategory = ({ icon: Icon, title, sub, fullWidth = false }) => (
         <ArrowRight size={14} className="text-white/30 group-hover:text-[#FF9933] group-hover:translate-x-1 transition-all" />
     </div>
 );
+// keep ChampionCategory export-ready for future legacy admin views
+export { ChampionCategory };
