@@ -55,7 +55,21 @@ Build a modern, scalable civic-tech web platform called **PublicOS Portal** wher
 - ✅ Official queue + status update flow
 - ✅ Stale-closure bug fix in Submit wizard (functional setState)
 
-## What's Been Implemented (Feb 24, 2026 — v2 Leaflet)
+## What's Been Implemented (Feb 24, 2026 — v3 Auth + Backend)
+- ✅ FastAPI + MongoDB backend: full auth (JWT cookies + Bearer), users, issues, comments, upvotes, admin moderation, analytics
+- ✅ Custom **email/password** auth (bcrypt + JWT, 1 email = 1 account uniqueness)
+- ✅ **Google OAuth** via Emergent-managed Auth (`auth.emergentagent.com`) with `#session_id` hash redirect handler in `AuthCallback.jsx`
+- ✅ **Forgot password** flow with **Resend** integration — 15-min reset tokens, branded HTML email, anti-enumeration response
+- ✅ **Admin role + moderation gate**: issues default to `approval_status="pending"`, hidden from public feed until admin approves
+- ✅ Citizen Dashboard at `/me` showing submissions with Pending review / Public / Resolved badges
+- ✅ Admin Panel at `/admin` with approval queue, all-issues table, users table, analytics aggregates
+- ✅ Issue Detail backed by API with real comments, upvote toggle, public timeline, location preview
+- ✅ Header now auth-aware: Log in/Sign up when logged out, avatar dropdown with My dashboard / Admin / Log out when logged in
+- ✅ Protected routes (`/submit`, `/me`, `/admin`) with auto-redirect to login
+- ✅ Admin seeded on startup: `admin@publicos.in` / `admin@1234`; 10 demo issues auto-approved
+- ✅ **"Made with Emergent" badge removed** from index.html
+- ✅ **Mobile responsive** verified at 375×800 across /, /login, /register, /feed, /me, /submit (zero horizontal overflow)
+- ✅ Testing iteration 3: 29/29 backend pytest pass, all critical frontend flows verified
 - ✅ react-leaflet 5 + leaflet 1.9 added, OSM tile layer rendering
 - ✅ Custom divIcon pulsing markers colour-coded by status, state-aggregate pins, heat circles
 - ✅ 3-mode toggle on /map: Issues / By state / Heat
