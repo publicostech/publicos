@@ -1,121 +1,60 @@
 # PublicOS — PRD
 
-## Original Problem Statement
-Build a modern, scalable civic-tech web platform called **PublicOS Portal** where every citizen can report local problems publicly and transparently. The platform should function like a combination of social reporting + governance analytics + public accountability dashboard. Citizens post issues (potholes, garbage, water, streetlights, drainage, corruption, pollution, etc.) with photos, GPS, urgency. Officials (ward → mandal → district → state → national) get dashboards with heatmaps, trends, SLA tracking. Super admin moderates. Vision: tomorrow every Indian city on one transparent platform with clear analytics showing which state performs how.
+## 1. Original problem statement
+Build a modern, scalable civic-tech web platform where citizens can report local civic problems publicly and transparently. Public issue feeds, role-based dashboards (citizen / official / admin), real maps with geolocation reporting, upvoting & commenting, admin moderation, two-step closure verification, and per-jurisdiction Official role.
 
-> Scope clarified by user: **Build the UI/UX pages only for now** — beautiful, engaging, public-facing. No backend/auth/real maps/AI. All data mocked.
+## 2. Personas
+- **Citizen** — reports issues, supports/comments, requests closure on their own reports.
+- **Official** — government officer at state/district level. Sees only issues within their jurisdiction. Can change workflow status and rule on closure requests for issues in their area.
+- **Admin (super)** — full moderation queue, promotes/revokes officials, decides closures everywhere, sees analytics.
 
-## User Choices
-- UI/UX only with mocked data
-- Modern government-grade trust design (deep navy + saffron + emerald India accents)
-- Static stylized India SVG map (no API key)
-- Multi-language switcher (EN / HI / TE)
-- Recharts for dashboard analytics
+## 3. Core requirements (delivered)
+- Public landing with India choropleth map + live issue ticker
+- Auth: Email/Password (JWT, bcrypt) + Google OAuth (Emergent-managed) + Resend password reset (15 min token)
+- Real Leaflet + OpenStreetMap maps with Nominatim reverse geocoding
+- Issue lifecycle: `submitted → under_review → assigned → in_progress → resolved / rejected`
+- **Two-step closure**: citizen requests closure (status `closure_requested`) → admin/official approves (`closed`) or rejects (reopens to previous status)
+- **Object storage** for real photo attachments (multipart upload → public file URL)
+- **Official role** with state/district jurisdiction, dedicated `/official` portal
+- **AI classify** category suggestion from title+description (GPT-4o-mini via Emergent LLM key)
+- Multi-language UI scaffolding: English / Hindi / Telugu (nav, hero, common, status, feed, submit) with localStorage persistence
 
-## Architecture
-- **Frontend**: React 19 (CRA) + react-router-dom 7, Tailwind 3, shadcn/ui, Recharts, Framer Motion, Lucide icons, Sonner toasts
-- **Design system**: Fraunces serif headings + Manrope body + JetBrains Mono for data. Civic Navy `#0A192F`, Saffron `#FF9933`, Emerald `#138808` on warm cream `#FAF9F6`.
-- **Data**: All mocked in `/app/frontend/src/lib/mockData.js` (13 civic categories, 12 issues, 16 states, platform stats, monthly trends, state leaderboard, dept efficiency, top contributors)
-- **i18n**: React context in `/app/frontend/src/lib/i18n.js` (EN/HI/TE — currently covers nav, hero, status, common)
-- **Backend**: Untouched default FastAPI (no new endpoints needed)
+## 4. Implemented this session (Feb 2026)
+| Date | Item |
+|---|---|
+| 2026-02-09 | Real photo uploads via Emergent object storage; `/api/upload` + `/api/files/{id}` |
+| 2026-02-09 | Citizen→Admin closure workflow (`closure_requested` status, decision endpoint, audit-trail timeline) |
+| 2026-02-09 | Official role + portal (`/official`), `/api/admin/officials/{assign,revoke}`, jurisdiction-scoped `/api/official/{me,issues,issues/{id}/status}` |
+| 2026-02-09 | ResetPassword token pre-validation on mount via `POST /api/auth/reset-password/validate` |
+| 2026-02-09 | AI category classifier `POST /api/ai/classify` |
+| 2026-02-09 | i18n expansion (feed/submit/common keys) + localStorage persistence |
 
-## User Personas
-1. **Citizen** — reports issues, upvotes, comments, tracks resolution, builds reputation
-2. **Government Official** — ward/mandal/district officer; reviews queue, updates status, uploads resolution proof
-3. **Super Admin** — moderates content, manages departments/categories/geography, verifies officials
-
-## Pages Implemented (UI-only)
-- `/` **Landing** — Hero, live ticker, bento stats, 3-step how-it-works, trending issue cards, map teaser, cities grid, citizen leaderboard, final CTA
-- `/feed` **Public Feed** — search, collapsible filters (category/status/state/urgency), sort tabs (Latest/Trending/Nearby/Resolved/Critical), issue card grid
-- `/submit` **Report Issue** — 5-step wizard (Category → Details → Media → Location → Review) with GPS auto-detect and anonymous toggle
-- `/map` **Map View** — stylized India SVG with pulsing state markers, Density/Resolution toggle, category layer filters, state drill-down panel
-- `/dashboard` **Analytics** — KPI cards, Reported-vs-Resolved bar chart, category pie, state leaderboard, dept SLA bar, avg-closure line, export buttons (PDF/Excel/CSV)
-- `/issue/:id` **Issue Detail** — photo carousel, timeline, public audit log, comments (post works), status, action bar (support/share/flag)
-- `/profile` **Citizen Profile** — avatar header, reputation stats, badges grid, tabs (My reports / Following / Notifications)
-- `/admin` **Super Admin** — KPIs + tabs (Moderation queue with approve/reject / Users / Departments / Categories / Geography)
-- `/official` **Official Panel** — queue list, issue detail pane, status select, assign dropdown, remark textarea, Update/Proof/Escalate buttons
-
-## Shared Components
-- `Header` — glassmorphic sticky, tricolor accent bar, logo, nav, language dropdown, Report Issue CTA, mobile hamburger
-- `Footer` — trust badges, 4-column nav, civic promise
-- `IssueCard` — photo, status badge, category chip, upvote button, comments/shares
-- `IndiaMap` — simplified SVG outline + state centroid markers with density/resolution coloring and hover tooltips
-- `StatusBadge`, `CategoryIcon` / `CategoryChip`
-
-## What's Been Implemented (Feb 24, 2026)
-- ✅ All 9 pages built with data-testid coverage
-- ✅ Tricolor-accented gov-grade design system (Fraunces + Manrope + JetBrains Mono)
-- ✅ 13 civic categories with Lucide icons and color coding
-- ✅ Live pulse ticker, bento stat grid, leaderboards
-- ✅ Stylized India map with 18 state markers, 2 color modes, drill-down
-- ✅ 6 Recharts visualisations (bar, line, pie, horizontal bar)
-- ✅ Language switcher EN / HI / TE (nav + hero + status labels)
-- ✅ Multi-step submit wizard with validation, anonymous reporting, GPS mock
-- ✅ Admin moderation queue with approve/reject toasts
-- ✅ Official queue + status update flow
-- ✅ Stale-closure bug fix in Submit wizard (functional setState)
-
-## What's Been Implemented (Feb 24, 2026 — v3 Auth + Backend)
-- ✅ FastAPI + MongoDB backend: full auth (JWT cookies + Bearer), users, issues, comments, upvotes, admin moderation, analytics
-- ✅ Custom **email/password** auth (bcrypt + JWT, 1 email = 1 account uniqueness)
-- ✅ **Google OAuth** via Emergent-managed Auth (`auth.emergentagent.com`) with `#session_id` hash redirect handler in `AuthCallback.jsx`
-- ✅ **Forgot password** flow with **Resend** integration — 15-min reset tokens, branded HTML email, anti-enumeration response
-- ✅ **Admin role + moderation gate**: issues default to `approval_status="pending"`, hidden from public feed until admin approves
-- ✅ Citizen Dashboard at `/me` showing submissions with Pending review / Public / Resolved badges
-- ✅ Admin Panel at `/admin` with approval queue, all-issues table, users table, analytics aggregates
-- ✅ Issue Detail backed by API with real comments, upvote toggle, public timeline, location preview
-- ✅ Header now auth-aware: Log in/Sign up when logged out, avatar dropdown with My dashboard / Admin / Log out when logged in
-- ✅ Protected routes (`/submit`, `/me`, `/admin`) with auto-redirect to login
-- ✅ Admin seeded on startup: `admin@publicos.in` / `admin@1234`; 10 demo issues auto-approved
-- ✅ **"Made with Emergent" badge removed** from index.html
-- ✅ **Mobile responsive** verified at 375×800 across /, /login, /register, /feed, /me, /submit (zero horizontal overflow)
-- ✅ Testing iteration 3: 29/29 backend pytest pass, all critical frontend flows verified
-- ✅ react-leaflet 5 + leaflet 1.9 added, OSM tile layer rendering
-- ✅ Custom divIcon pulsing markers colour-coded by status, state-aggregate pins, heat circles
-- ✅ 3-mode toggle on /map: Issues / By state / Heat
-- ✅ 'Near me' button using navigator.geolocation on /map
-- ✅ Real browser geolocation on /submit GPS button with Nominatim reverse-geocode (auto-fills address/pincode/city/state)
-- ✅ LocationPreview mini-map on /submit step 4 and every /issue/:id detail page
-- ✅ All 12 mock issues now have lat/lng coordinates
-- ✅ Testing agent iter-2: 100% pass, 0 console errors
-
-## Known Limitations (by design, UI-only phase)
-- All data is mocked client-side (no API calls)
-- No real auth/OTP/social login
-- GPS is simulated; real browser geolocation not wired
-- Hindi/Telugu translations only cover nav + hero + status (page bodies remain English)
-- Map is stylized SVG, not real Mapbox/Leaflet
-- File uploads are mock-only
-- Export buttons show toasts but don't generate real files
-
-## Prioritized Backlog
-### P0 (next phase to make it functional)
-- FastAPI backend: Issue model + CRUD, upload to object storage, user auth (JWT or Emergent Google), comments, upvotes
-- Real geolocation (browser API) + reverse geocoding
-- Backend seed script to ingest mock data into MongoDB
-- Protected routes for Admin/Official panels
-
+## 5. Backlog
 ### P1
-- Integrate Leaflet + OpenStreetMap for real map
-- Full i18n coverage across all pages
-- AI auto-classification (OpenAI/Claude via Emergent LLM key)
-- Real file upload to object storage
-- Push/email/SMS notifications
-- PDF/Excel report generation
-- WebSocket live feed & live ticker
+- Allow officials to comment / message reporters within the portal
+- Email notifications to citizens on status changes (Resend)
+- Bulk closure approve/reject for admins
 
 ### P2
-- Duplicate issue detection
-- Sentiment analysis on comments
-- Predictive hotspot modelling
-- WhatsApp integration for updates
-- CAPTCHA + spam prevention
-- SLA escalation engine with email
-- SaaS billing for municipalities
+- Expand HI/TE translations to remaining marketing pages
+- Duplicate-issue detection (geohash + embedding similarity)
+- AI-summary of long descriptions on admin queue
+- Image moderation safety filter on upload
+- Map clustering when feed gets dense
+- CSV / JSON export of issues for journalists
 
-## Next Tasks
-1. Wire up backend CRUD + MongoDB schema for issues, users, comments, upvotes
-2. Add JWT or Emergent Google auth
-3. Replace mocked data with real API fetch
-4. Integrate real map library
-5. Expand translations to full page coverage
+### Refactor
+- Split `backend/server.py` into `routes/{auth,issues,admin,official,storage}.py` + `models/`. Currently ~1060 lines.
+
+## 6. Tech stack
+- React + Tailwind + shadcn UI + Plus Jakarta Sans + Leaflet
+- FastAPI + Motor + PyJWT + bcrypt + Resend + emergentintegrations (object storage + LLM)
+- MongoDB
+
+## 7. Key endpoints (current)
+- Auth: `POST /api/auth/{register,login,google,forgot-password,reset-password,reset-password/validate}` · `GET /api/auth/me`
+- Issues: `GET/POST /api/issues` · `GET /api/issues/{id}` · `POST /api/issues/{id}/{upvote,comments,request-closure}`
+- Storage: `POST /api/upload` · `GET /api/files/{file_id}`
+- AI: `POST /api/ai/classify`
+- Admin: `POST /api/admin/issues/{id}/{approve,reject,status,closure-decision}` · `GET /api/admin/{issues,users,analytics,officials}` · `POST /api/admin/officials/{assign,revoke}`
+- Official: `GET /api/official/{me,issues}` · `POST /api/official/issues/{id}/status`
