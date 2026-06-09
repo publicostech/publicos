@@ -63,11 +63,11 @@ export default function Landing() {
                                 transition={{ duration: 0.7 }}
                                 className="font-serif font-semibold text-5xl md:text-7xl leading-[0.95] tracking-tight text-[#0A192F]"
                             >
-                                Every pothole.
+                                {t("hero.title_l1")}
                                 <br />
-                                Every complaint.
+                                {t("hero.title_l2")}
                                 <br />
-                                <span className="italic text-[#FF9933]">Every promise kept.</span>
+                                <span className="italic text-[#FF9933]">{t("hero.title_l3")}</span>
                             </motion.h1>
                             <p className="text-lg text-slate-600 max-w-xl leading-relaxed">
                                 {t("hero.subtitle")}
@@ -92,15 +92,15 @@ export default function Landing() {
                             <div className="pt-6 flex flex-wrap gap-x-8 gap-y-3 text-xs text-slate-500 border-t border-[#0A192F]/10 mt-6">
                                 <div className="inline-flex items-center gap-1.5">
                                     <ShieldCheck size={14} strokeWidth={1.75} className="text-emerald-700" />
-                                    Anonymous reporting protected
+                                    {t("hero.trust_anon")}
                                 </div>
                                 <div className="inline-flex items-center gap-1.5">
                                     <Eye size={14} strokeWidth={1.75} />
-                                    Every action timestamped publicly
+                                    {t("hero.trust_audit")}
                                 </div>
                                 <div className="inline-flex items-center gap-1.5">
                                     <Users size={14} strokeWidth={1.75} />
-                                    1.8M+ citizens already on board
+                                    {t("hero.trust_users")}
                                 </div>
                             </div>
                         </div>
@@ -118,7 +118,7 @@ export default function Landing() {
                 <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center gap-6">
                     <div className="overline text-[#FF9933] shrink-0 inline-flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#FF9933] animate-pulse" />
-                        Live Pulse
+                        {t("landing.ticker")}
                     </div>
                     <div className="overflow-hidden flex-1">
                         <div className="flex gap-12 animate-ticker whitespace-nowrap">
@@ -137,9 +137,9 @@ export default function Landing() {
             <section className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
                 <div className="mb-12 md:flex items-end justify-between gap-8">
                     <div>
-                        <div className="overline text-[#FF9933] mb-3">The public ledger</div>
+                        <div className="overline text-[#FF9933] mb-3">{t("landing.stats_eyebrow")}</div>
                         <h2 className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F] max-w-3xl">
-                            India's civic pulse, in numbers that won't let anyone hide.
+                            {t("landing.stats_title")}
                         </h2>
                     </div>
                     <Link
@@ -147,61 +147,61 @@ export default function Landing() {
                         className="inline-flex items-center gap-2 text-sm font-semibold text-[#0A192F] hover:text-[#FF9933] shrink-0"
                         data-testid="landing-dashboard-link"
                     >
-                        Full analytics
+                        {t("landing.stats_cta")}
                         <ArrowRight size={14} />
                     </Link>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                     <div className="md:col-span-5 md:row-span-2 bg-[#0A192F] text-white rounded-lg p-8 flex flex-col justify-between min-h-[260px]">
-                        <div className="overline text-[#FF9933]">Total issues reported</div>
+                        <div className="overline text-[#FF9933]">{t("landing.stats_total")}</div>
                         <div>
                             <div className="font-serif text-7xl md:text-8xl tracking-tighter">
                                 {(PLATFORM_STATS.total_reports / 1000).toFixed(0)}K+
                             </div>
                             <div className="text-sm text-white/60 mt-2 font-mono">
-                                247,893 and counting · since 2024
+                                {t("landing.stats_total_sub")}
                             </div>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-[#FF9933]">
-                            <TrendingUp size={14} /> +18% month over month
+                            <TrendingUp size={14} /> {t("landing.stats_growth")}
                         </div>
                     </div>
                     <Stat
                         className="md:col-span-2"
-                        label="Resolved"
+                        label={t("landing.stats_resolved")}
                         value={`${Math.round((PLATFORM_STATS.resolved / PLATFORM_STATS.total_reports) * 100)}%`}
-                        sub="168,421 closed with proof"
+                        sub={t("landing.stats_resolved_sub")}
                         accent="text-emerald-700"
                     />
                     <Stat
                         className="md:col-span-2"
-                        label="Avg resolution"
+                        label={t("landing.stats_avg")}
                         value={`${PLATFORM_STATS.avg_resolution_days}d`}
-                        sub="faster than SLA in 7 states"
+                        sub={t("landing.stats_avg_sub")}
                     />
                     <div className="md:col-span-3 md:row-span-2 bg-[#FF9933] text-white rounded-lg p-6 flex flex-col justify-between min-h-[160px]">
-                        <div className="overline text-white/80">Citizens</div>
+                        <div className="overline text-white/80">{t("landing.stats_citizens")}</div>
                         <div>
                             <div className="font-serif text-6xl tracking-tight leading-none">
                                 {(PLATFORM_STATS.citizens / 1000000).toFixed(1)}M
                             </div>
-                            <div className="text-xs mt-2 font-mono text-white/80">watching · reporting · upvoting</div>
+                            <div className="text-xs mt-2 font-mono text-white/80">{t("landing.stats_citizens_sub")}</div>
                         </div>
                         <div className="text-[11px] font-mono text-white/70">
-                            +42,000 this week
+                            {t("landing.stats_citizens_growth")}
                         </div>
                     </div>
                     <Stat
                         className="md:col-span-2"
-                        label="Cities live"
+                        label={t("landing.stats_cities")}
                         value={PLATFORM_STATS.cities}
-                        sub="across 28 states + 8 UTs"
+                        sub={t("landing.stats_cities_sub")}
                     />
                     <Stat
                         className="md:col-span-2"
-                        label="Officials onboard"
+                        label={t("landing.stats_officials")}
                         value={`${(PLATFORM_STATS.officials / 1000).toFixed(1)}K`}
-                        sub="from ward to state level"
+                        sub={t("landing.stats_officials_sub")}
                         accent="text-[#FF9933]"
                     />
                 </div>
@@ -211,31 +211,16 @@ export default function Landing() {
             <section className="bg-white border-y border-[#0A192F]/10">
                 <div className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
                     <div className="max-w-2xl mb-12">
-                        <div className="overline text-[#FF9933] mb-3">The loop</div>
+                        <div className="overline text-[#FF9933] mb-3">{t("landing.loop_eyebrow")}</div>
                         <h2 className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F]">
-                            Report. Route. Resolve. Repeat — on the public record.
+                            {t("landing.loop_title")}
                         </h2>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {[
-                            {
-                                n: "01",
-                                icon: Sparkles,
-                                title: "Citizen reports",
-                                text: "Snap, describe, drop a pin. GPS captures location. Urgency auto-suggested by AI. Anonymous if you prefer.",
-                            },
-                            {
-                                n: "02",
-                                icon: Hammer,
-                                title: "Officials act",
-                                text: "Auto-routed to correct department. SLA clock starts. Officers assign, update status, upload proof — every step logged.",
-                            },
-                            {
-                                n: "03",
-                                icon: BarChart3,
-                                title: "Public audits",
-                                text: "Every citizen sees the timeline. Dashboards rank states, districts, departments. Accountability becomes ambient.",
-                            },
+                            { n: "01", icon: Sparkles, titleKey: "landing.step1_title", textKey: "landing.step1_text" },
+                            { n: "02", icon: Hammer, titleKey: "landing.step2_title", textKey: "landing.step2_text" },
+                            { n: "03", icon: BarChart3, titleKey: "landing.step3_title", textKey: "landing.step3_text" },
                         ].map((step) => (
                             <div
                                 key={step.n}
@@ -247,9 +232,9 @@ export default function Landing() {
                                     <step.icon size={20} strokeWidth={1.5} className="text-[#FF9933]" />
                                 </div>
                                 <h3 className="font-serif text-2xl mb-3 text-[#0A192F]">
-                                    {step.title}
+                                    {t(step.titleKey)}
                                 </h3>
-                                <p className="text-sm text-slate-600 leading-relaxed">{step.text}</p>
+                                <p className="text-sm text-slate-600 leading-relaxed">{t(step.textKey)}</p>
                             </div>
                         ))}
                     </div>
@@ -260,13 +245,13 @@ export default function Landing() {
             <section className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
                 <div className="flex items-end justify-between mb-10 gap-8">
                     <div>
-                        <div className="overline text-[#FF9933] mb-3">Trending right now</div>
+                        <div className="overline text-[#FF9933] mb-3">{t("landing.trending_eyebrow")}</div>
                         <h2 className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F]">
-                            What India is talking about today
+                            {t("landing.trending_title")}
                         </h2>
                     </div>
                     <Link to="/feed" className="text-sm font-semibold text-[#0A192F] hover:text-[#FF9933] inline-flex items-center gap-2 shrink-0" data-testid="featured-view-all">
-                        View all <ArrowRight size={14} />
+                        {t("common.view_all")} <ArrowRight size={14} />
                     </Link>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -281,23 +266,21 @@ export default function Landing() {
                 <div className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
                         <div className="lg:col-span-5 space-y-6">
-                            <div className="overline text-[#FF9933]">Live heat map</div>
+                            <div className="overline text-[#FF9933]">{t("landing.map_eyebrow")}</div>
                             <h2 className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F]">
-                                Which state is pulling its weight — and which isn't?
+                                {t("landing.map_title")}
                             </h2>
                             <p className="text-slate-600 leading-relaxed">
-                                A public, zoomable heat map of every reported issue across India.
-                                Drill down from country to ward. Compare states. See why Kerala closes
-                                faster than UP. No spin. Just data.
+                                {t("landing.map_sub")}
                             </p>
                             <div className="grid grid-cols-2 gap-3 pt-4">
                                 <div className="bg-white border border-[#0A192F]/10 rounded-md p-4">
-                                    <div className="overline text-emerald-700 mb-1">Top performer</div>
+                                    <div className="overline text-emerald-700 mb-1">{t("landing.map_top")}</div>
                                     <div className="font-serif text-2xl">Kerala</div>
                                     <div className="text-xs font-mono text-slate-500">5.2d avg · 92 score</div>
                                 </div>
                                 <div className="bg-white border border-[#0A192F]/10 rounded-md p-4">
-                                    <div className="overline text-red-700 mb-1">Needs attention</div>
+                                    <div className="overline text-red-700 mb-1">{t("landing.map_bottom")}</div>
                                     <div className="font-serif text-2xl">Bihar</div>
                                     <div className="text-xs font-mono text-slate-500">15.6d avg · 54 score</div>
                                 </div>
@@ -307,7 +290,7 @@ export default function Landing() {
                                 data-testid="landing-map-link"
                                 className="inline-flex items-center gap-2 bg-[#0A192F] text-white font-semibold px-5 py-3 rounded-md hover:bg-[#FF9933] transition-colors"
                             >
-                                Open full map <ArrowRight size={14} />
+                                {t("landing.map_cta")} <ArrowRight size={14} />
                             </Link>
                         </div>
                         <div className="lg:col-span-7 bg-white border border-[#0A192F]/10 rounded-lg p-2 overflow-hidden">
@@ -320,9 +303,9 @@ export default function Landing() {
             {/* CITIES */}
             <section className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
                 <div className="mb-10">
-                    <div className="overline text-[#FF9933] mb-3">Live in</div>
+                    <div className="overline text-[#FF9933] mb-3">{t("landing.cities_eyebrow")}</div>
                     <h2 className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F]">
-                        284 cities. And counting.
+                        {t("landing.cities_title")}
                     </h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -354,13 +337,12 @@ export default function Landing() {
                 <div className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                         <div className="lg:col-span-5">
-                            <div className="overline text-[#FF9933] mb-3">Citizen honour roll</div>
+                            <div className="overline text-[#FF9933] mb-3">{t("landing.leaderboard_eyebrow")}</div>
                             <h2 className="font-serif text-4xl md:text-5xl tracking-tight">
-                                The quiet few who won't stop reporting.
+                                {t("landing.leaderboard_title")}
                             </h2>
                             <p className="text-white/70 leading-relaxed mt-5">
-                                Reputation points aren't gamified fluff. They reflect how many reports
-                                actually led to resolution. Officials see your track record too.
+                                {t("landing.leaderboard_sub")}
                             </p>
                         </div>
                         <div className="lg:col-span-7 space-y-3">
@@ -393,12 +375,12 @@ export default function Landing() {
             <section className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
                 <div className="mb-12 flex items-end justify-between gap-8 flex-wrap">
                     <div>
-                        <div className="overline text-[#FF9933] mb-3">Beyond potholes</div>
+                        <div className="overline text-[#FF9933] mb-3">{t("landing.categories_eyebrow")}</div>
                         <h2 className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F] max-w-3xl">
-                            It's not just roads. It's everything civic.
+                            {t("landing.categories_title")}
                         </h2>
                         <p className="text-slate-600 mt-4 max-w-xl leading-relaxed">
-                            From water leaks wasting lakhs of litres, to corruption at the ration counter, to 5-storey structures on residential plots — every category gets the same public ledger treatment.
+                            {t("landing.categories_sub")}
                         </p>
                     </div>
                     <Link
@@ -406,7 +388,7 @@ export default function Landing() {
                         className="inline-flex items-center gap-2 text-sm font-semibold text-[#0A192F] hover:text-[#FF9933] shrink-0"
                         data-testid="showcase-view-all"
                     >
-                        Browse all categories <ArrowRight size={14} />
+                        {t("landing.categories_cta")} <ArrowRight size={14} />
                     </Link>
                 </div>
 
@@ -574,10 +556,10 @@ export default function Landing() {
                 <div className="bg-[#FAF9F6] border border-[#0A192F]/15 rounded-lg p-10 md:p-16 text-center">
                     <CheckCircle2 size={28} strokeWidth={1.5} className="mx-auto text-emerald-700 mb-4" />
                     <h2 className="font-serif text-4xl md:text-6xl tracking-tight text-[#0A192F] max-w-3xl mx-auto leading-tight">
-                        The next pothole you ignore could be the one that gets fixed today.
+                        {t("landing.cta_title")}
                     </h2>
                     <p className="text-slate-600 mt-5 max-w-xl mx-auto">
-                        Takes 90 seconds. No OTP needed to browse. Anonymous option always available.
+                        {t("landing.cta_sub")}
                     </p>
                     <div className="mt-8 flex flex-wrap gap-3 justify-center">
                         <Link
@@ -585,13 +567,13 @@ export default function Landing() {
                             data-testid="cta-final-report"
                             className="inline-flex items-center gap-2 bg-[#0A192F] text-white font-semibold px-6 py-3.5 rounded-md hover:bg-[#FF9933] transition-colors"
                         >
-                            Report your first issue <ArrowRight size={15} />
+                            {t("landing.cta_primary")} <ArrowRight size={15} />
                         </Link>
                         <Link
                             to="/dashboard"
                             className="inline-flex items-center gap-2 bg-white border border-[#0A192F]/20 text-[#0A192F] font-semibold px-6 py-3.5 rounded-md hover:border-[#0A192F]"
                         >
-                            See state rankings
+                            {t("landing.cta_secondary")}
                         </Link>
                     </div>
                 </div>

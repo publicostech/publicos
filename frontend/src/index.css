@@ -149,6 +149,27 @@ html, body {
         0% { transform: scale(0.5); opacity: 0.7; }
         100% { transform: scale(2.2); opacity: 0; }
     }
+    .civic-cluster { background: transparent; border: none; }
+    .civic-cluster-bubble {
+        background: var(--c);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-family: 'JetBrains Mono', monospace;
+        border: 3px solid white;
+        box-shadow: 0 6px 18px rgba(10, 25, 47, 0.35), 0 0 0 1px var(--c);
+        transition: transform 180ms ease;
+    }
+    .civic-cluster-bubble:hover { transform: scale(1.08); }
+    .marker-cluster-small,
+    .marker-cluster-medium,
+    .marker-cluster-large { background: transparent !important; }
+    .marker-cluster-small div,
+    .marker-cluster-medium div,
+    .marker-cluster-large div { background: transparent !important; color: transparent !important; box-shadow: none !important; }
     .leaflet-popup-content-wrapper {
         border-radius: 8px;
         border: 1px solid rgba(10, 25, 47, 0.1);

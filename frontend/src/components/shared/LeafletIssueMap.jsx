@@ -1,8 +1,13 @@
 import React, { useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker, ZoomControl } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import { Link } from "react-router-dom";
+import "leaflet/dist/leaflet.css";
 import { ISSUES, STATE_MARKERS } from "../../lib/mockData";
+
+const BACKEND = process.env.REACT_APP_BACKEND_URL;
+const photoUrl = (p) => (p?.startsWith?.("http") ? p : `${BACKEND}${p || ""}`);
 
 // Fix default marker icons in webpack
 delete L.Icon.Default.prototype._getIconUrl;
@@ -19,6 +24,8 @@ const STATUS_COLORS = {
     in_progress: "#FF9933",
     resolved: "#138808",
     rejected: "#dc2626",
+    closure_requested: "#d97706",
+    closed: "#0A192F",
 };
 
 const makeIssueIcon = (status) => {
@@ -44,15 +51,105 @@ const makeStateIcon = (marker) => {
     });
 };
 
+// Custom cluster icon — saffron pill with count
+const createClusterIcon = (cluster) => {
+    const count = cluster.getChildCount();
+    const size = count >= 100 ? 56 : count >= 20 ? 48 : 40;
+    const fontSize = count >= 100 ? 14 : 13;
+    const color = count >= 100 ? "#dc2626" : count >= 20 ? "#FF9933" : "#0A192F";
+    return L.divIcon({
+        className: "civic-cluster",
+        html: `<div class="civic-cluster-bubble" style="--c:${color};width:${size}px;height:${size}px;font-size:${fontSize}px">${count}</div>`,
+        iconSize: L.point(size, size, true),
+    });
+};
+
+// Adapt either mock-style issue OR backend issue into a uniform shape
+const normaliseIssue = (i) => {
+    if (i.location && typeof i.location === "object") {
+        // Mock data format already has {location:{lat,lng,city,state}}
+        return {
+            id: i.id || i.issue_id,
+            title: i.title,
+            status: i.status,
+            category: i.category,
+            lat: i.location.lat,
+            lng: i.location.lng,
+            city: i.location.city,
+            state: i.location.state,
+            photo: i.photos?.[0],
+            upvotes: i.upvotes ?? 0,
+        };
+    }
+    return null;
+};
+
 export const LeafletIssueMap = ({
     view = "issues",
     categoryFilter = "all",
     onStateClick,
     height = 580,
+    customIssues = null, // backend issues — if provided, overrides mock ISSUES
+    enableClustering = true,
 }) => {
     const issues = useMemo(() => {
-        return ISSUES.filter((i) => i.location.lat && (categoryFilter === "all" || i.category === categoryFilter));
-    }, [categoryFilter]);
+        const source = customIssues || ISSUES;
+        return source
+            .map(normaliseIssue)
+            .filter((i) => i && i.lat && i.lng && (categoryFilter === "all" || i.category === categoryFilter));
+    }, [categoryFilter, customIssues]);
+
+    const renderedMarkers = (
+        <>
+            {issues.map((i) => (
+                <Marker
+                    key={i.id}
+                    position={[i.lat, i.lng]}
+                    icon={makeIssueIcon(i.status)}
+                >
+                    <Popup maxWidth={320}>
+                        <div className="w-[280px]">
+                            {i.photo && (
+                                <img
+                                    src={photoUrl(i.photo)}
+                                    alt=""
+                                    className="w-full h-32 object-cover rounded-t-md"
+                                />
+                            )}
+                            <div className="p-3">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span
+                                        className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded"
+                                        style={{
+                                            background: (STATUS_COLORS[i.status] || "#64748b") + "22",
+                                            color: STATUS_COLORS[i.status] || "#64748b",
+                                        }}
+                                    >
+                                        {i.status?.replace("_", " ")}
+                                    </span>
+                                    <span className="text-[10px] font-mono text-slate-400">#{i.id}</span>
+                                </div>
+                                <div className="font-serif text-base leading-tight text-[#0A192F] mb-2">
+                                    {i.title}
+                                </div>
+                                <div className="text-[11px] text-slate-500 mb-3">
+                                    {i.city}, {i.state}
+                                    <span className="mx-1.5">·</span>
+                                    <span className="font-mono">{(i.upvotes || 0).toLocaleString()} support</span>
+                                </div>
+                                <Link
+                                    to={`/issue/${i.id}`}
+                                    className="inline-block bg-[#0A192F] text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-[#FF9933]"
+                                >
+                                    View details →
+                                </Link>
+                            </div>
+                        </div>
+                    </Popup>
+                </Marker>
+            ))}
+        </>
+    );
 
     return (
         <div style={{ height }} className="relative rounded-md overflow-hidden" data-testid="leaflet-map">
@@ -102,54 +199,19 @@ export const LeafletIssueMap = ({
                         </Marker>
                     ))}
 
-                {view === "issues" &&
-                    issues.map((i) => (
-                        <Marker
-                            key={i.id}
-                            position={[i.location.lat, i.location.lng]}
-                            icon={makeIssueIcon(i.status)}
+                {view === "issues" && (
+                    enableClustering ? (
+                        <MarkerClusterGroup
+                            chunkedLoading
+                            iconCreateFunction={createClusterIcon}
+                            showCoverageOnHover={false}
+                            spiderfyOnMaxZoom={true}
+                            maxClusterRadius={55}
                         >
-                            <Popup maxWidth={320}>
-                                <div className="w-[280px]">
-                                    {i.photos?.[0] && (
-                                        <img
-                                            src={i.photos[0]}
-                                            alt=""
-                                            className="w-full h-32 object-cover rounded-t-md"
-                                        />
-                                    )}
-                                    <div className="p-3">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span
-                                                className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded"
-                                                style={{
-                                                    background: STATUS_COLORS[i.status] + "22",
-                                                    color: STATUS_COLORS[i.status],
-                                                }}
-                                            >
-                                                {i.status.replace("_", " ")}
-                                            </span>
-                                            <span className="text-[10px] font-mono text-slate-400">#{i.id}</span>
-                                        </div>
-                                        <div className="font-serif text-base leading-tight text-[#0A192F] mb-2">
-                                            {i.title}
-                                        </div>
-                                        <div className="text-[11px] text-slate-500 mb-3">
-                                            {i.location.city}, {i.location.state}
-                                            <span className="mx-1.5">·</span>
-                                            <span className="font-mono">{i.upvotes.toLocaleString()} support</span>
-                                        </div>
-                                        <Link
-                                            to={`/issue/${i.id}`}
-                                            className="inline-block bg-[#0A192F] text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-[#FF9933]"
-                                        >
-                                            View details →
-                                        </Link>
-                                    </div>
-                                </div>
-                            </Popup>
-                        </Marker>
-                    ))}
+                            {renderedMarkers}
+                        </MarkerClusterGroup>
+                    ) : renderedMarkers
+                )}
 
                 {view === "heat" &&
                     STATE_MARKERS.map((m) => {
