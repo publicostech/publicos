@@ -11,6 +11,7 @@ import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
 import { Switch } from "../components/ui/switch";
 import LocationPreview from "../components/shared/LocationPreview";
+import { api, formatApiError } from "../lib/api";
 
 const STEPS = [
     { id: 1, label: "Category" },
@@ -87,11 +88,35 @@ export default function Submit() {
     const next = () => setStep(Math.min(5, step + 1));
     const prev = () => setStep(Math.max(1, step - 1));
 
-    const submit = () => {
-        toast.success("Issue submitted successfully", {
-            description: `Tracking ID: CT-${Math.floor(Math.random() * 9000 + 1000)}`,
-        });
-        setTimeout(() => navigate("/feed"), 1200);
+    const [submitting, setSubmitting] = useState(false);
+
+    const submit = async () => {
+        setSubmitting(true);
+        try {
+            const { data } = await api.post("/issues", {
+                title: form.title,
+                description: form.description,
+                category: form.category,
+                urgency: form.urgency,
+                anonymous: form.anonymous,
+                photos: [],
+                address: form.address,
+                city: form.city,
+                district: "",
+                state: form.state,
+                pincode: form.pincode,
+                lat: form.lat,
+                lng: form.lng,
+            });
+            toast.success("Issue submitted successfully", {
+                description: `Tracking ID: ${data.issue_id} — waiting for admin approval to go public.`,
+            });
+            setTimeout(() => navigate("/me"), 800);
+        } catch (e) {
+            toast.error(formatApiError(e));
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const canProceed = () => {
