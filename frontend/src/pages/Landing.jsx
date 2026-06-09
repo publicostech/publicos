@@ -188,7 +188,7 @@ export default function Landing() {
                                 className="inline-flex items-center gap-2 mt-8 bg-[#FF9933] text-white font-semibold px-5 py-3 rounded-lg hover:bg-[#0A192F] transition-colors"
                                 data-testid="how-learn-more"
                             >
-                                Learn More <ArrowRight size={14} />
+                                {t("landing.how_learn_more")} <ArrowRight size={14} />
                             </Link>
                         </div>
                         <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -275,7 +275,7 @@ export default function Landing() {
                             data-testid="topics-explore-all"
                             className="inline-flex items-center gap-2 bg-white border-2 border-[#0A192F]/10 text-[#0A192F] font-semibold px-6 py-3 rounded-lg hover:border-[#FF9933] hover:text-[#FF9933] transition-colors"
                         >
-                            Explore All Categories <ArrowRight size={14} />
+                            {t("landing.topics_explore_all")} <ArrowRight size={14} />
                         </Link>
                     </div>
                 </div>
@@ -406,28 +406,28 @@ export default function Landing() {
                                 className="inline-flex items-center gap-2 mt-10 bg-white border-2 border-[#0A192F]/15 text-[#0A192F] font-semibold px-5 py-3 rounded-lg hover:border-[#FF9933] hover:text-[#FF9933] transition-colors"
                                 data-testid="champions-cta"
                             >
-                                View Leaderboard <ArrowRight size={14} />
+                                {t("landing.champ_cta")} <ArrowRight size={14} />
                             </Link>
                         </div>
 
                         {/* Knowledge Hub teaser — Insights & Stories */}
                         <div className="lg:col-span-6">
-                            <div className="overline text-[#FF9933] mb-3">Insights & Stories</div>
+                            <div className="overline text-[#FF9933] mb-3">{t("landing.hub_eyebrow")}</div>
                             <h2 className="font-serif text-3xl md:text-4xl tracking-tight leading-tight text-[#0A192F] mb-4">
-                                Learn. Engage. Take Action.
+                                {t("landing.hub_title")}
                             </h2>
                             <p className="text-sm text-slate-600 leading-relaxed mb-6">
-                                Explore articles, success stories, civic guides, and community insights designed to help citizens create meaningful impact.
+                                {t("landing.hub_sub")}
                             </p>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 {[
-                                    { tag: "Civic Education", title: "Understanding Your Civic Rights", bg: "#FFEAD9", tagColor: "#FF6B35" },
-                                    { tag: "Success Story", title: "How Communities Created Change", bg: "#D4F5E1", tagColor: "#10B981" },
-                                    { tag: "Smart Governance", title: "The Future of Transparent Cities", bg: "#DAEFFB", tagColor: "#3B82F6" },
+                                    { tagKey: "hub_a1_tag", titleKey: "hub_a1_title", bg: "#FFEAD9", tagColor: "#FF6B35", id: "civic-education" },
+                                    { tagKey: "hub_a2_tag", titleKey: "hub_a2_title", bg: "#D4F5E1", tagColor: "#10B981", id: "success-story" },
+                                    { tagKey: "hub_a3_tag", titleKey: "hub_a3_title", bg: "#DAEFFB", tagColor: "#3B82F6", id: "smart-governance" },
                                 ].map((a) => (
                                     <div
-                                        key={a.title}
-                                        data-testid={`hub-${a.tag.toLowerCase().replace(/\s+/g, "-")}`}
+                                        key={a.id}
+                                        data-testid={`hub-${a.id}`}
                                         className="rounded-xl overflow-hidden bg-[#FAF9F6] border border-[#0A192F]/5 hover:-translate-y-1 transition-all duration-300 hover:shadow-md flex flex-col"
                                     >
                                         <div className="aspect-[5/3] flex items-center justify-center" style={{ background: a.bg }}>
@@ -438,11 +438,11 @@ export default function Landing() {
                                                 className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded self-start mb-2"
                                                 style={{ background: a.bg, color: a.tagColor }}
                                             >
-                                                {a.tag}
+                                                {t(`landing.${a.tagKey}`)}
                                             </span>
-                                            <div className="font-serif text-sm text-[#0A192F] leading-tight">{a.title}</div>
+                                            <div className="font-serif text-sm text-[#0A192F] leading-tight">{t(`landing.${a.titleKey}`)}</div>
                                             <div className="mt-3 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest" style={{ color: a.tagColor }}>
-                                                Read More <ArrowRight size={10} />
+                                                {t("landing.hub_read_more")} <ArrowRight size={10} />
                                             </div>
                                         </div>
                                     </div>
