@@ -99,7 +99,7 @@ export const IndiaMap = ({ onStateClick, activeState = null, mode = "density" })
                                 textAnchor="middle"
                                 fontSize={isHovered ? 18 : 13}
                                 fontWeight="700"
-                                fontFamily="Manrope, sans-serif"
+                                fontFamily="Plus Jakarta Sans, sans-serif"
                                 fill="#0A192F"
                                 style={{ pointerEvents: "none" }}
                             >
@@ -131,7 +131,7 @@ export const IndiaMap = ({ onStateClick, activeState = null, mode = "density" })
                                         y={size + 48}
                                         textAnchor="middle"
                                         fontSize="11"
-                                        fontFamily="Manrope, sans-serif"
+                                        fontFamily="Plus Jakarta Sans, sans-serif"
                                         fill="#FFFFFF"
                                     >
                                         {Math.round((m.resolved / m.issues) * 100)}% resolved

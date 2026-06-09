@@ -8,8 +8,8 @@ module.exports = {
     theme: {
         extend: {
             fontFamily: {
-                serif: ['Fraunces', 'serif'],
-                sans: ['Manrope', 'system-ui', 'sans-serif'],
+                serif: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+                sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
                 mono: ['"JetBrains Mono"', 'monospace'],
             },
             colors: {

@@ -98,7 +98,7 @@ export const IndiaChoropleth = ({
 
         if (showLabels) {
             layer.bindTooltip(
-                `<div style="font-family:Manrope;font-size:10px;font-weight:700;color:#0A192F;text-shadow:0 1px 2px rgba(255,255,255,0.9), 0 0 4px rgba(255,255,255,0.9);">${name}</div>`,
+                `<div style="font-family:Plus Jakarta Sans;font-size:10px;font-weight:700;color:#0A192F;text-shadow:0 1px 2px rgba(255,255,255,0.9), 0 0 4px rgba(255,255,255,0.9);">${name}</div>`,
                 {
                     permanent: true,
                     direction: "center",

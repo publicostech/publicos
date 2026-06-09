@@ -7,7 +7,7 @@
 html, body {
     margin: 0;
     padding: 0;
-    font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: #FAF9F6;
@@ -55,23 +55,25 @@ html, body {
     }
     body {
         @apply bg-background text-foreground;
-        font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+        font-feature-settings: "ss01" 1, "cv02" 1, "cv11" 1;
     }
     h1, h2, h3, h4, h5, h6 {
-        font-family: 'Fraunces', serif;
-        letter-spacing: -0.02em;
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        font-weight: 700;
+        letter-spacing: -0.025em;
     }
 }
 
 @layer utilities {
     .font-serif {
-        font-family: 'Fraunces', serif;
-        font-variation-settings: "opsz" 144;
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        font-weight: 700;
+        letter-spacing: -0.025em;
     }
     .font-display {
-        font-family: 'Fraunces', serif;
-        font-variation-settings: "opsz" 144;
-        letter-spacing: -0.03em;
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        font-weight: 800;
+        letter-spacing: -0.035em;
     }
     .font-mono {
         font-family: 'JetBrains Mono', monospace;
@@ -105,7 +107,7 @@ html, body {
     }
     /* Leaflet customisations */
     .leaflet-container {
-        font-family: 'Manrope', system-ui, sans-serif;
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
         background: #FAF9F6;
     }
     .civic-marker {
@@ -155,7 +157,7 @@ html, body {
     }
     .leaflet-popup-content {
         margin: 0;
-        font-family: 'Manrope', sans-serif;
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
     .leaflet-popup-tip {
         background: white;
@@ -164,12 +166,12 @@ html, body {
         background: white !important;
         color: #0A192F !important;
         border: 1px solid rgba(10, 25, 47, 0.15) !important;
-        font-family: 'Manrope', sans-serif;
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
     .leaflet-control-attribution {
         font-size: 10px !important;
         background: rgba(255, 255, 255, 0.85) !important;
-        font-family: 'Manrope', sans-serif !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
     .state-label-tooltip {
         background: transparent !important;

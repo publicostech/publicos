@@ -4,7 +4,7 @@ import L from "leaflet";
 
 const pinIcon = L.divIcon({
     className: "civic-marker",
-    html: `<div class="civic-marker-pin" style="background:#FF9933;width:28px;height:28px;"><span style="font-family:Fraunces,serif;font-size:14px">●</span></div>`,
+    html: `<div class="civic-marker-pin" style="background:#FF9933;width:28px;height:28px;"><span style="font-family:Plus Jakarta Sans, sans-serif;font-size:14px">●</span></div>`,
     iconSize: [28, 28],
     iconAnchor: [14, 14],
 });
