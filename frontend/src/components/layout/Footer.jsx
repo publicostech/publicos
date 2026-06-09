@@ -13,7 +13,7 @@ export const Footer = () => {
             <div className="max-w-7xl mx-auto px-6 md:px-12 py-16">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
                     <div className="md:col-span-5 space-y-5">
-                        <BrandLogo size={44} invert />
+                        <BrandLogo height={56} invert />
                         <p className="text-sm text-white/70 leading-relaxed max-w-md">
                             A public ledger of civic issues — every report, every response,
                             timestamped and auditable. Built by citizens, for citizens, with

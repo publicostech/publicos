@@ -41,7 +41,7 @@ export const Header = () => {
                     className="flex items-center group"
                     data-testid="header-logo"
                 >
-                    <BrandLogo size={38} />
+                    <BrandLogo height={36} />
                 </Link>
 
                 <nav className="hidden lg:flex items-center gap-7">
