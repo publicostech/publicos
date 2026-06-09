@@ -40,6 +40,8 @@ Build a modern, scalable civic-tech web platform where citizens can report local
 | 2026-02-09 | Official role + portal, ResetPassword pre-validate, AI classify |
 | 2026-02-09 | i18n EN/HI/TE expansion + Map clustering (react-leaflet-cluster) |
 | 2026-02-09 | Homepage content refactor — dropped all fabricated civic data; new Mission-led pre-launch copy per user PDF brief |
+| 2026-02-09 | Colorful pastel redesign — Topics / How-It-Works / Communities / Champions / Knowledge Hub |
+| 2026-02-09 | Founding-citizen waitlist — `POST /api/waitlist`, admin Waitlist tab with city analytics, i18n EN/HI/TE |
 
 ## 7. Backlog
 ### P1
