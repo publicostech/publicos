@@ -9,10 +9,12 @@ import secrets
 import bcrypt
 import jwt
 import httpx
+import requests
 import resend
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends, UploadFile, File, Query
+from fastapi.responses import Response as FastResponse
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, EmailStr, Field
@@ -32,6 +34,9 @@ ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin@1234")
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
+STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
+APP_NAME = "publicos"
 resend.api_key = RESEND_API_KEY
 
 client = AsyncIOMotorClient(MONGO_URL)
@@ -47,6 +52,74 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ------------------------------------------------------------------
+# Storage helpers (Emergent object storage)
+# ------------------------------------------------------------------
+_storage_key: Optional[str] = None
+
+def init_storage() -> Optional[str]:
+    global _storage_key
+    if _storage_key:
+        return _storage_key
+    if not EMERGENT_LLM_KEY:
+        logger.warning("EMERGENT_LLM_KEY missing; storage disabled")
+        return None
+    try:
+        r = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": EMERGENT_LLM_KEY}, timeout=30)
+        r.raise_for_status()
+        _storage_key = r.json()["storage_key"]
+        return _storage_key
+    except Exception as e:
+        logger.error(f"Storage init failed: {e}")
+        return None
+
+def put_object(path: str, data: bytes, content_type: str) -> dict:
+    key = init_storage()
+    if not key:
+        raise HTTPException(status_code=503, detail="Storage unavailable")
+    r = requests.put(
+        f"{STORAGE_URL}/objects/{path}",
+        headers={"X-Storage-Key": key, "Content-Type": content_type},
+        data=data,
+        timeout=120,
+    )
+    if r.status_code == 403:
+        # refresh key once
+        globals()["_storage_key"] = None
+        key = init_storage()
+        if not key:
+            raise HTTPException(status_code=503, detail="Storage unavailable")
+        r = requests.put(
+            f"{STORAGE_URL}/objects/{path}",
+            headers={"X-Storage-Key": key, "Content-Type": content_type},
+            data=data,
+            timeout=120,
+        )
+    r.raise_for_status()
+    return r.json()
+
+def get_object(path: str):
+    key = init_storage()
+    if not key:
+        raise HTTPException(status_code=503, detail="Storage unavailable")
+    r = requests.get(
+        f"{STORAGE_URL}/objects/{path}",
+        headers={"X-Storage-Key": key},
+        timeout=60,
+    )
+    if r.status_code == 403:
+        globals()["_storage_key"] = None
+        key = init_storage()
+        if not key:
+            raise HTTPException(status_code=503, detail="Storage unavailable")
+        r = requests.get(
+            f"{STORAGE_URL}/objects/{path}",
+            headers={"X-Storage-Key": key},
+            timeout=60,
+        )
+    r.raise_for_status()
+    return r.content, r.headers.get("Content-Type", "application/octet-stream")
 
 # ------------------------------------------------------------------
 # Helpers — auth
@@ -108,6 +181,23 @@ async def require_admin(user: dict = Depends(get_current_user)) -> dict:
         raise HTTPException(status_code=403, detail="Admin only")
     return user
 
+async def require_official_or_admin(user: dict = Depends(get_current_user)) -> dict:
+    if user.get("role") not in ("admin", "official"):
+        raise HTTPException(status_code=403, detail="Official access only")
+    return user
+
+def issue_in_jurisdiction(issue: dict, user: dict) -> bool:
+    """Admins always pass; officials must match state (and district if set)."""
+    if user.get("role") == "admin":
+        return True
+    j = user.get("jurisdiction") or {}
+    loc = issue.get("location") or {}
+    if j.get("state") and (loc.get("state") or "").strip().lower() != j["state"].strip().lower():
+        return False
+    if j.get("district") and (loc.get("district") or "").strip().lower() != j["district"].strip().lower():
+        return False
+    return True
+
 # ------------------------------------------------------------------
 # Models
 # ------------------------------------------------------------------
@@ -151,6 +241,26 @@ class CommentIn(BaseModel):
 class StatusIn(BaseModel):
     status: str
     remark: Optional[str] = ""
+
+class ClosureRequestIn(BaseModel):
+    comment: str = Field(min_length=4, max_length=1000)
+    proof_photos: List[str] = []
+
+class ClosureDecisionIn(BaseModel):
+    decision: str  # "approve" or "reject"
+    remark: Optional[str] = ""
+
+class OfficialJurisdictionIn(BaseModel):
+    user_id: str
+    state: Optional[str] = ""
+    district: Optional[str] = ""
+
+class AIClassifyIn(BaseModel):
+    title: str
+    description: str = ""
+
+class ResetTokenIn(BaseModel):
+    token: str
 
 # ------------------------------------------------------------------
 # Auth routes
@@ -341,6 +451,102 @@ async def reset_password(body: ResetIn):
     await db.password_reset_tokens.update_one({"token": body.token}, {"$set": {"used": True}})
     return {"ok": True}
 
+@api.post("/auth/reset-password/validate")
+async def validate_reset_token(body: ResetTokenIn):
+    rec = await db.password_reset_tokens.find_one({"token": body.token, "used": False}, {"_id": 0})
+    if not rec:
+        raise HTTPException(status_code=400, detail="Invalid or already-used reset link")
+    expires_at = rec["expires_at"]
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Reset link expired")
+    return {"ok": True, "email": rec.get("email")}
+
+# ------------------------------------------------------------------
+# Uploads — Emergent object storage
+# ------------------------------------------------------------------
+MIME_EXT = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif"}
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
+
+@api.post("/upload")
+async def upload_file(file: UploadFile = File(...), user: dict = Depends(get_current_user)):
+    content_type = file.content_type or "application/octet-stream"
+    if content_type not in MIME_EXT:
+        raise HTTPException(status_code=400, detail="Only JPG, PNG, WEBP, GIF images are allowed")
+    data = await file.read()
+    if len(data) == 0:
+        raise HTTPException(status_code=400, detail="Empty file")
+    if len(data) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=400, detail="File exceeds 10 MB limit")
+    ext = MIME_EXT[content_type]
+    file_id = uuid.uuid4().hex
+    path = f"{APP_NAME}/uploads/{user['user_id']}/{file_id}.{ext}"
+    result = await asyncio.to_thread(put_object, path, data, content_type)
+    rec = {
+        "file_id": file_id,
+        "storage_path": result["path"],
+        "original_filename": file.filename,
+        "content_type": content_type,
+        "size": result.get("size", len(data)),
+        "owner_user_id": user["user_id"],
+        "is_deleted": False,
+        "created_at": datetime.now(timezone.utc),
+    }
+    await db.files.insert_one(rec)
+    return {
+        "file_id": file_id,
+        "url": f"/api/files/{file_id}",
+        "content_type": content_type,
+        "size": rec["size"],
+    }
+
+@api.get("/files/{file_id}")
+async def serve_file(file_id: str):
+    rec = await db.files.find_one({"file_id": file_id, "is_deleted": False})
+    if not rec:
+        raise HTTPException(status_code=404, detail="File not found")
+    data, content_type = await asyncio.to_thread(get_object, rec["storage_path"])
+    return FastResponse(content=data, media_type=rec.get("content_type", content_type), headers={
+        "Cache-Control": "public, max-age=86400",
+    })
+
+# ------------------------------------------------------------------
+# AI — auto-classify category (P2)
+# ------------------------------------------------------------------
+CIVIC_CATEGORIES = [
+    "pothole", "garbage", "streetlight", "water", "drainage", "sewage",
+    "electricity", "pollution", "encroachment", "traffic", "corruption", "noise", "other"
+]
+
+@api.post("/ai/classify")
+async def ai_classify(body: AIClassifyIn, user: dict = Depends(get_current_user)):
+    """Use Emergent LLM key to suggest a category from issue title + description."""
+    if not EMERGENT_LLM_KEY:
+        return {"category": None, "confidence": 0, "reason": "LLM disabled"}
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"classify-{uuid.uuid4().hex[:8]}",
+            system_message=(
+                "You are a civic issue classifier for an Indian public reporting platform. "
+                f"Read the citizen report and return ONLY one category from this list, lower-case: {', '.join(CIVIC_CATEGORIES)}. "
+                "Do not output anything else."
+            ),
+        ).with_model("openai", "gpt-4o-mini")
+        msg = UserMessage(text=f"Title: {body.title}\nDescription: {body.description}\n\nCategory:")
+        out = await chat.send_message(msg)
+        guess = (out or "").strip().lower().split()[0].strip(".,:'\"")
+        if guess not in CIVIC_CATEGORIES:
+            guess = "other"
+        return {"category": guess}
+    except Exception as e:
+        logger.error(f"AI classify failed: {e}")
+        return {"category": None, "error": str(e)}
+
 # ------------------------------------------------------------------
 # Issues
 # ------------------------------------------------------------------
@@ -479,6 +685,108 @@ async def my_issues(user: dict = Depends(get_current_user)):
     return [doc async for doc in cursor]
 
 # ------------------------------------------------------------------
+# Closure workflow — citizen requests, admin/official decides
+# ------------------------------------------------------------------
+@api.post("/issues/{issue_id}/request-closure")
+async def request_closure(issue_id: str, body: ClosureRequestIn, user: dict = Depends(get_current_user)):
+    doc = await db.issues.find_one({"issue_id": issue_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Issue not found")
+    if doc.get("owner_user_id") != user["user_id"]:
+        raise HTTPException(status_code=403, detail="Only the reporter can request closure")
+    if doc.get("status") == "closed":
+        raise HTTPException(status_code=400, detail="Issue is already closed")
+    if doc.get("status") == "closure_requested":
+        raise HTTPException(status_code=400, detail="Closure already requested")
+    now = datetime.now(timezone.utc)
+    closure = {
+        "requested_by": user["user_id"],
+        "requested_by_name": user["name"],
+        "comment": body.comment.strip(),
+        "proof_photos": body.proof_photos,
+        "requested_at": now,
+        "decision": "pending",
+    }
+    await db.issues.update_one(
+        {"issue_id": issue_id},
+        {
+            "$set": {
+                "previous_status": doc.get("status", "submitted"),
+                "status": "closure_requested",
+                "closure": closure,
+            },
+            "$push": {
+                "timeline": {
+                    "at": now,
+                    "label": "Citizen requested closure",
+                    "actor": user["name"],
+                    "note": body.comment.strip(),
+                }
+            },
+        },
+    )
+    return {"ok": True, "status": "closure_requested"}
+
+@api.post("/admin/issues/{issue_id}/closure-decision")
+async def closure_decision(issue_id: str, body: ClosureDecisionIn, actor: dict = Depends(require_official_or_admin)):
+    doc = await db.issues.find_one({"issue_id": issue_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Issue not found")
+    if doc.get("status") != "closure_requested":
+        raise HTTPException(status_code=400, detail="No pending closure request for this issue")
+    if not issue_in_jurisdiction(doc, actor):
+        raise HTTPException(status_code=403, detail="Outside your jurisdiction")
+    now = datetime.now(timezone.utc)
+    if body.decision == "approve":
+        await db.issues.update_one(
+            {"issue_id": issue_id},
+            {
+                "$set": {
+                    "status": "closed",
+                    "closed_at": now,
+                    "closed_by": actor["user_id"],
+                    "closure.decision": "approved",
+                    "closure.decided_at": now,
+                    "closure.decided_by": actor["user_id"],
+                    "closure.decision_remark": body.remark or "",
+                },
+                "$push": {
+                    "timeline": {
+                        "at": now,
+                        "label": "Closure approved — issue permanently closed",
+                        "actor": actor.get("name", "Official"),
+                        "note": body.remark or "",
+                    }
+                },
+            },
+        )
+        return {"ok": True, "status": "closed"}
+    elif body.decision == "reject":
+        prev = doc.get("previous_status") or "in_progress"
+        await db.issues.update_one(
+            {"issue_id": issue_id},
+            {
+                "$set": {
+                    "status": prev,
+                    "closure.decision": "rejected",
+                    "closure.decided_at": now,
+                    "closure.decided_by": actor["user_id"],
+                    "closure.decision_remark": body.remark or "",
+                },
+                "$push": {
+                    "timeline": {
+                        "at": now,
+                        "label": "Closure request rejected — issue reopened",
+                        "actor": actor.get("name", "Official"),
+                        "note": body.remark or "",
+                    }
+                },
+            },
+        )
+        return {"ok": True, "status": prev}
+    raise HTTPException(status_code=400, detail="decision must be 'approve' or 'reject'")
+
+# ------------------------------------------------------------------
 # Admin
 # ------------------------------------------------------------------
 @api.get("/admin/issues")
@@ -537,6 +845,107 @@ async def admin_status(issue_id: str, body: StatusIn, admin: dict = Depends(requ
         raise HTTPException(status_code=404, detail="Issue not found")
     return {"ok": True}
 
+# ------------------------------------------------------------------
+# Official role management
+# ------------------------------------------------------------------
+@api.post("/admin/officials/assign")
+async def assign_official(body: OfficialJurisdictionIn, _a: dict = Depends(require_admin)):
+    user = await db.users.find_one({"user_id": body.user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user.get("role") == "admin":
+        raise HTTPException(status_code=400, detail="Cannot demote admin")
+    await db.users.update_one(
+        {"user_id": body.user_id},
+        {"$set": {
+            "role": "official",
+            "jurisdiction": {"state": (body.state or "").strip(), "district": (body.district or "").strip()},
+        }},
+    )
+    return {"ok": True}
+
+@api.post("/admin/officials/revoke")
+async def revoke_official(body: OfficialJurisdictionIn, _a: dict = Depends(require_admin)):
+    await db.users.update_one(
+        {"user_id": body.user_id, "role": "official"},
+        {"$set": {"role": "citizen"}, "$unset": {"jurisdiction": ""}},
+    )
+    return {"ok": True}
+
+@api.get("/admin/officials")
+async def list_officials(_a: dict = Depends(require_admin)):
+    cursor = db.users.find({"role": "official"}, {"_id": 0, "password_hash": 0}).sort("created_at", -1)
+    return [u async for u in cursor]
+
+# ------------------------------------------------------------------
+# Official panel APIs (jurisdiction-scoped)
+# ------------------------------------------------------------------
+def _jurisdiction_query(user: dict) -> dict:
+    q: dict = {}
+    if user.get("role") == "official":
+        j = user.get("jurisdiction") or {}
+        if j.get("state"):
+            q["location.state"] = j["state"]
+        if j.get("district"):
+            q["location.district"] = j["district"]
+    return q
+
+@api.get("/official/issues")
+async def official_issues(actor: dict = Depends(require_official_or_admin)):
+    q = _jurisdiction_query(actor)
+    # Officials see approved + closure_requested + active issues; not pending moderation
+    q["approval_status"] = "approved"
+    cursor = db.issues.find(q, {"_id": 0}).sort("posted_at", -1).limit(500)
+    return [doc async for doc in cursor]
+
+@api.get("/official/me")
+async def official_me(actor: dict = Depends(require_official_or_admin)):
+    pending_closure = await db.issues.count_documents({
+        "status": "closure_requested",
+        **_jurisdiction_query(actor),
+        "approval_status": "approved",
+    })
+    open_issues = await db.issues.count_documents({
+        "status": {"$in": ["submitted", "under_review", "assigned", "in_progress"]},
+        **_jurisdiction_query(actor),
+        "approval_status": "approved",
+    })
+    resolved = await db.issues.count_documents({
+        "status": {"$in": ["resolved", "closed"]},
+        **_jurisdiction_query(actor),
+        "approval_status": "approved",
+    })
+    return {
+        "role": actor.get("role"),
+        "jurisdiction": actor.get("jurisdiction") or {},
+        "name": actor.get("name"),
+        "stats": {"pending_closure": pending_closure, "open": open_issues, "resolved": resolved},
+    }
+
+@api.post("/official/issues/{issue_id}/status")
+async def official_status(issue_id: str, body: StatusIn, actor: dict = Depends(require_official_or_admin)):
+    doc = await db.issues.find_one({"issue_id": issue_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Issue not found")
+    if not issue_in_jurisdiction(doc, actor):
+        raise HTTPException(status_code=403, detail="Outside your jurisdiction")
+    if body.status == "closed":
+        raise HTTPException(status_code=400, detail="Use the closure-decision endpoint to close issues")
+    await db.issues.update_one(
+        {"issue_id": issue_id},
+        {
+            "$set": {"status": body.status},
+            "$push": {
+                "timeline": {
+                    "at": datetime.now(timezone.utc),
+                    "label": f"Status → {body.status.replace('_', ' ')}" + (f" · {body.remark}" if body.remark else ""),
+                    "actor": actor.get("name", "Official"),
+                }
+            },
+        },
+    )
+    return {"ok": True}
+
 @api.get("/admin/users")
 async def admin_users(_a: dict = Depends(require_admin)):
     cursor = db.users.find({}, {"_id": 0, "password_hash": 0}).sort("created_at", -1).limit(500)
@@ -549,6 +958,8 @@ async def admin_analytics(_a: dict = Depends(require_admin)):
     pending = await db.issues.count_documents({"approval_status": "pending"})
     approved = await db.issues.count_documents({"approval_status": "approved"})
     resolved = await db.issues.count_documents({"status": "resolved"})
+    closed = await db.issues.count_documents({"status": "closed"})
+    closure_requested = await db.issues.count_documents({"status": "closure_requested"})
     in_progress = await db.issues.count_documents({"status": "in_progress"})
     by_cat_cur = db.issues.aggregate([
         {"$group": {"_id": "$category", "count": {"$sum": 1}}},
@@ -567,6 +978,8 @@ async def admin_analytics(_a: dict = Depends(require_admin)):
         "pending_approval": pending,
         "approved": approved,
         "resolved": resolved,
+        "closed": closed,
+        "closure_requested": closure_requested,
         "in_progress": in_progress,
         "by_category": by_category,
         "by_state": by_state,
@@ -627,6 +1040,12 @@ async def startup():
     await db.password_reset_tokens.create_index("expires_at", expireAfterSeconds=3600)
     await db.password_reset_tokens.create_index("token", unique=True)
     await db.comments.create_index("issue_id")
+    await db.files.create_index("file_id", unique=True)
+    try:
+        await asyncio.to_thread(init_storage)
+        logger.info("Object storage initialized")
+    except Exception as e:
+        logger.error(f"Storage init failed at startup: {e}")
     await seed_admin()
     await seed_demo_issues()
 

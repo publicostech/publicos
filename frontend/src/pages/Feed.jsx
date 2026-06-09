@@ -12,15 +12,17 @@ import {
 } from "../components/ui/select";
 import { Input } from "../components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { useLang } from "../lib/i18n";
 
-const SORT_TABS = [
-    { id: "latest", label: "Latest" },
-    { id: "trending", label: "Trending" },
-    { id: "resolved", label: "Resolved" },
-    { id: "critical", label: "Critical" },
+const SORT_TABS_KEYS = [
+    { id: "latest", k: "feed.sort_recent" },
+    { id: "trending", k: "feed.sort_supported" },
+    { id: "resolved", k: "status.resolved" },
+    { id: "critical", k: "feed.sort_urgent" },
 ];
 
 export default function Feed() {
+    const { t } = useLang();
     const [sort, setSort] = useState("latest");
     const [query, setQuery] = useState("");
     const [category, setCategory] = useState("all");
@@ -58,12 +60,12 @@ export default function Feed() {
     return (
         <div data-testid="page-feed" className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-8 md:py-16">
             <div className="mb-8 md:mb-10">
-                <div className="overline text-[#FF9933] mb-3">Public Feed</div>
+                <div className="overline text-[#FF9933] mb-3">{t("nav.feed")}</div>
                 <h1 className="font-serif text-3xl sm:text-4xl md:text-6xl tracking-tight text-[#0A192F] mb-3">
-                    What India is reporting.
+                    {t("feed.title")}
                 </h1>
                 <p className="text-slate-600 max-w-xl leading-relaxed">
-                    Every approved issue, every status update — filter, follow, and raise your voice on what matters.
+                    {t("feed.subtitle")}
                 </p>
             </div>
 
@@ -143,14 +145,14 @@ export default function Feed() {
 
             <Tabs value={sort} onValueChange={setSort} className="mb-6">
                 <TabsList className="bg-white border border-[#0A192F]/10 h-auto p-1 flex-wrap justify-start gap-1">
-                    {SORT_TABS.map((s) => (
+                    {SORT_TABS_KEYS.map((s) => (
                         <TabsTrigger
                             key={s.id}
                             value={s.id}
                             data-testid={`sort-tab-${s.id}`}
                             className="data-[state=active]:bg-[#0A192F] data-[state=active]:text-white font-semibold text-xs md:text-sm px-3 sm:px-4 py-2"
                         >
-                            {s.label}
+                            {t(s.k)}
                         </TabsTrigger>
                     ))}
                 </TabsList>
@@ -158,7 +160,7 @@ export default function Feed() {
 
             <div className="flex items-center justify-between mb-5">
                 <div className="text-sm font-mono text-slate-500" data-testid="feed-result-count">
-                    {loading ? "Loading…" : `${issues.length} ${issues.length === 1 ? "issue" : "issues"}`}
+                    {loading ? t("common.loading") : `${issues.length} ${issues.length === 1 ? "issue" : "issues"}`}
                 </div>
             </div>
 

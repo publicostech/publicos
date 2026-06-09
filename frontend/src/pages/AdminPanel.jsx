@@ -1,33 +1,42 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Shield, Users, FileCheck2, CheckCircle2, XCircle, Clock, Loader2, BarChart3 } from "lucide-react";
+import { Shield, Users, FileCheck2, CheckCircle2, XCircle, Clock, Loader2, BarChart3, RotateCcw, Landmark } from "lucide-react";
 import { api, formatApiError } from "../lib/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { StatusBadge } from "../components/shared/StatusBadge";
 import { CategoryChip } from "../components/shared/CategoryIcon";
 import { toast } from "sonner";
 
+const BACKEND = process.env.REACT_APP_BACKEND_URL;
+const photoUrl = (p) => (p?.startsWith("http") ? p : `${BACKEND}${p}`);
+
 export default function AdminPanel() {
     const [tab, setTab] = useState("queue");
     const [pendingIssues, setPendingIssues] = useState([]);
+    const [closureIssues, setClosureIssues] = useState([]);
     const [allIssues, setAllIssues] = useState([]);
     const [users, setUsers] = useState([]);
+    const [officials, setOfficials] = useState([]);
     const [analytics, setAnalytics] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [busy, setBusy] = useState("");
 
     const load = async () => {
         setLoading(true);
         try {
-            const [pending, all, u, a] = await Promise.all([
+            const [pending, all, u, a, off] = await Promise.all([
                 api.get("/admin/issues", { params: { approval: "pending" } }).then((r) => r.data),
                 api.get("/admin/issues").then((r) => r.data),
                 api.get("/admin/users").then((r) => r.data),
                 api.get("/admin/analytics").then((r) => r.data),
+                api.get("/admin/officials").then((r) => r.data),
             ]);
             setPendingIssues(pending);
             setAllIssues(all);
+            setClosureIssues(all.filter((i) => i.status === "closure_requested"));
             setUsers(u);
             setAnalytics(a);
+            setOfficials(off);
         } catch (e) {
             toast.error(formatApiError(e));
         } finally {
@@ -50,6 +59,42 @@ export default function AdminPanel() {
             toast.success(`${id} rejected`);
             load();
         } catch (e) { toast.error(formatApiError(e)); }
+    };
+
+    const decideClosure = async (id, decision) => {
+        setBusy(`${id}:${decision}`);
+        try {
+            await api.post(`/admin/issues/${id}/closure-decision`, { decision, remark: "" });
+            toast.success(decision === "approve" ? `${id} permanently closed` : `${id} closure rejected — reopened`);
+            await load();
+        } catch (e) {
+            toast.error(formatApiError(e));
+        } finally {
+            setBusy("");
+        }
+    };
+
+    const promoteOfficial = async (user_id) => {
+        const state = window.prompt("Assign jurisdiction — state (e.g. 'Karnataka'). Leave blank for nationwide:");
+        if (state === null) return;
+        const district = window.prompt("District (optional, leave blank for whole state):") || "";
+        try {
+            await api.post("/admin/officials/assign", { user_id, state: state.trim(), district: district.trim() });
+            toast.success("User promoted to Official");
+            await load();
+        } catch (e) {
+            toast.error(formatApiError(e));
+        }
+    };
+
+    const revokeOfficial = async (user_id) => {
+        try {
+            await api.post("/admin/officials/revoke", { user_id });
+            toast.success("Official role revoked");
+            await load();
+        } catch (e) {
+            toast.error(formatApiError(e));
+        }
     };
 
     return (
@@ -76,8 +121,12 @@ export default function AdminPanel() {
                     <TabsTrigger value="queue" className="data-[state=active]:bg-[#0A192F] data-[state=active]:text-white px-3 sm:px-4 py-2" data-testid="admin-tab-queue">
                         Approval queue {analytics?.pending_approval > 0 && <span className="ml-1.5 bg-red-600 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5">{analytics.pending_approval}</span>}
                     </TabsTrigger>
+                    <TabsTrigger value="closure" className="data-[state=active]:bg-[#0A192F] data-[state=active]:text-white px-3 sm:px-4 py-2" data-testid="admin-tab-closure">
+                        Closure requests {closureIssues.length > 0 && <span className="ml-1.5 bg-amber-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5">{closureIssues.length}</span>}
+                    </TabsTrigger>
                     <TabsTrigger value="issues" className="data-[state=active]:bg-[#0A192F] data-[state=active]:text-white px-3 sm:px-4 py-2" data-testid="admin-tab-issues">All issues</TabsTrigger>
                     <TabsTrigger value="users" className="data-[state=active]:bg-[#0A192F] data-[state=active]:text-white px-3 sm:px-4 py-2" data-testid="admin-tab-users">Users</TabsTrigger>
+                    <TabsTrigger value="officials" className="data-[state=active]:bg-[#0A192F] data-[state=active]:text-white px-3 sm:px-4 py-2" data-testid="admin-tab-officials">Officials</TabsTrigger>
                     <TabsTrigger value="analytics" className="data-[state=active]:bg-[#0A192F] data-[state=active]:text-white px-3 sm:px-4 py-2" data-testid="admin-tab-analytics">Analytics</TabsTrigger>
                 </TabsList>
 
@@ -96,7 +145,7 @@ export default function AdminPanel() {
                             {pendingIssues.map((i) => (
                                 <div key={i.issue_id} className="bg-white border border-[#0A192F]/10 rounded-lg p-4 md:p-5" data-testid={`admin-queue-${i.issue_id}`}>
                                     <div className="flex flex-col md:flex-row gap-4">
-                                        {i.photos?.[0] && <img src={i.photos[0]} className="w-full md:w-32 h-32 md:h-24 object-cover rounded-md shrink-0" alt="" />}
+                                        {i.photos?.[0] && <img src={photoUrl(i.photos[0])} className="w-full md:w-32 h-32 md:h-24 object-cover rounded-md shrink-0" alt="" />}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 flex-wrap mb-2">
                                                 <CategoryChip categoryId={i.category} />
@@ -125,7 +174,58 @@ export default function AdminPanel() {
                     )}
                 </TabsContent>
 
-                {/* All issues */}
+                {/* Closure requests */}
+                <TabsContent value="closure" className="mt-6">
+                    {closureIssues.length === 0 ? (
+                        <div className="bg-white border border-dashed border-[#0A192F]/15 rounded-lg p-10 text-center" data-testid="closure-empty">
+                            <CheckCircle2 size={28} className="mx-auto text-emerald-600 mb-3" />
+                            <div className="font-serif text-xl">No closure requests pending.</div>
+                            <p className="text-sm text-slate-500 mt-1">Citizens haven&apos;t requested any closures.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3" data-testid="closure-list">
+                            {closureIssues.map((i) => (
+                                <div key={i.issue_id} className="bg-white border border-amber-200 rounded-lg p-4 md:p-5" data-testid={`closure-row-${i.issue_id}`}>
+                                    <div className="flex flex-col md:flex-row gap-4">
+                                        {i.photos?.[0] && <img src={photoUrl(i.photos[0])} className="w-full md:w-32 h-32 md:h-24 object-cover rounded-md shrink-0" alt="" />}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 flex-wrap mb-2">
+                                                <CategoryChip categoryId={i.category} />
+                                                <StatusBadge status={i.status} />
+                                                <span className="font-mono text-[10px] text-slate-400 ml-auto">#{i.issue_id}</span>
+                                            </div>
+                                            <Link to={`/issue/${i.issue_id}`} className="font-serif text-lg text-[#0A192F] hover:text-[#FF9933] block mb-1">{i.title}</Link>
+                                            {i.closure?.comment && (
+                                                <p className="text-sm text-slate-700 italic line-clamp-2">&ldquo;{i.closure.comment}&rdquo;</p>
+                                            )}
+                                            <div className="text-xs text-slate-500 mt-2">
+                                                {i.closure?.requested_by_name || i.reporter?.name} · {i.location?.city}, {i.location?.state} · Requested {i.closure?.requested_at ? new Date(i.closure.requested_at).toLocaleString("en-IN", { dateStyle: "medium" }) : ""}
+                                            </div>
+                                        </div>
+                                        <div className="flex md:flex-col gap-2 shrink-0">
+                                            <button
+                                                onClick={() => decideClosure(i.issue_id, "approve")}
+                                                disabled={busy === `${i.issue_id}:approve`}
+                                                data-testid={`closure-approve-${i.issue_id}`}
+                                                className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 bg-emerald-600 text-white font-semibold px-3 py-2 rounded-md text-xs hover:bg-emerald-700 disabled:opacity-60"
+                                            >
+                                                {busy === `${i.issue_id}:approve` ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={14} />} Approve
+                                            </button>
+                                            <button
+                                                onClick={() => decideClosure(i.issue_id, "reject")}
+                                                disabled={busy === `${i.issue_id}:reject`}
+                                                data-testid={`closure-reject-${i.issue_id}`}
+                                                className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 bg-white border border-red-200 text-red-700 font-semibold px-3 py-2 rounded-md text-xs hover:bg-red-50 disabled:opacity-60"
+                                            >
+                                                {busy === `${i.issue_id}:reject` ? <Loader2 size={12} className="animate-spin" /> : <RotateCcw size={14} />} Reopen
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </TabsContent>
                 <TabsContent value="issues" className="mt-6">
                     <div className="bg-white border border-[#0A192F]/10 rounded-lg overflow-hidden">
                         <div className="overflow-x-auto">
@@ -175,6 +275,7 @@ export default function AdminPanel() {
                                         <th className="text-left p-3 sm:p-4">Role</th>
                                         <th className="text-left p-3 sm:p-4">Auth</th>
                                         <th className="text-left p-3 sm:p-4">Joined</th>
+                                        <th className="text-right p-3 sm:p-4">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -183,16 +284,65 @@ export default function AdminPanel() {
                                             <td className="p-3 sm:p-4 font-semibold">{u.name}</td>
                                             <td className="p-3 sm:p-4 text-xs">{u.email}</td>
                                             <td className="p-3 sm:p-4">
-                                                <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${u.role === "admin" ? "bg-[#0A192F] text-white" : "bg-slate-100 text-slate-700"}`}>{u.role}</span>
+                                                <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${u.role === "admin" ? "bg-[#0A192F] text-white" : u.role === "official" ? "bg-[#138808] text-white" : "bg-slate-100 text-slate-700"}`}>{u.role}</span>
                                             </td>
                                             <td className="p-3 sm:p-4 text-xs">{u.auth_provider}</td>
                                             <td className="p-3 sm:p-4 text-xs text-slate-500">{new Date(u.created_at).toLocaleDateString("en-IN")}</td>
+                                            <td className="p-3 sm:p-4 text-right">
+                                                {u.role === "citizen" ? (
+                                                    <button onClick={() => promoteOfficial(u.user_id)} data-testid={`promote-${u.user_id}`} className="text-[10px] font-bold uppercase px-2 py-1 rounded bg-amber-100 text-amber-800 hover:bg-amber-200">Make official</button>
+                                                ) : u.role === "official" ? (
+                                                    <button onClick={() => revokeOfficial(u.user_id)} data-testid={`revoke-${u.user_id}`} className="text-[10px] font-bold uppercase px-2 py-1 rounded bg-slate-100 text-slate-700 hover:bg-slate-200">Revoke</button>
+                                                ) : (
+                                                    <span className="text-[10px] text-slate-400">—</span>
+                                                )}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         </div>
                     </div>
+                </TabsContent>
+
+                {/* Officials */}
+                <TabsContent value="officials" className="mt-6">
+                    {officials.length === 0 ? (
+                        <div className="bg-white border border-dashed border-[#0A192F]/15 rounded-lg p-10 text-center" data-testid="officials-empty">
+                            <Landmark size={28} className="mx-auto text-slate-400 mb-3" />
+                            <div className="font-serif text-xl">No officials assigned yet.</div>
+                            <p className="text-sm text-slate-500 mt-1">Promote any citizen from the Users tab and assign a jurisdiction (state / district).</p>
+                        </div>
+                    ) : (
+                        <div className="bg-white border border-[#0A192F]/10 rounded-lg overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm" data-testid="officials-table">
+                                    <thead className="bg-[#FAF9F6] border-b border-[#0A192F]/10">
+                                        <tr className="text-xs uppercase tracking-widest text-slate-500">
+                                            <th className="text-left p-3 sm:p-4">Name</th>
+                                            <th className="text-left p-3 sm:p-4">Email</th>
+                                            <th className="text-left p-3 sm:p-4">State</th>
+                                            <th className="text-left p-3 sm:p-4">District</th>
+                                            <th className="text-right p-3 sm:p-4">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {officials.map((o) => (
+                                            <tr key={o.user_id} className="border-b border-[#0A192F]/5 hover:bg-[#FAF9F6]">
+                                                <td className="p-3 sm:p-4 font-semibold">{o.name}</td>
+                                                <td className="p-3 sm:p-4 text-xs">{o.email}</td>
+                                                <td className="p-3 sm:p-4 text-xs">{o.jurisdiction?.state || <span className="text-slate-400">All India</span>}</td>
+                                                <td className="p-3 sm:p-4 text-xs">{o.jurisdiction?.district || <span className="text-slate-400">All</span>}</td>
+                                                <td className="p-3 sm:p-4 text-right">
+                                                    <button onClick={() => revokeOfficial(o.user_id)} data-testid={`official-revoke-${o.user_id}`} className="text-[10px] font-bold uppercase px-2 py-1 rounded bg-slate-100 text-slate-700 hover:bg-slate-200">Revoke</button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
                 </TabsContent>
 
                 {/* Analytics */}

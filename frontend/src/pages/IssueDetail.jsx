@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
     ArrowLeft, ArrowUp, MessageCircle, Share2, MapPin, Clock, ShieldCheck,
-    Flag, User, Landmark, Loader2,
+    Flag, User, Landmark, Loader2, CheckCircle2, XCircle, RotateCcw,
 } from "lucide-react";
 import { api, formatApiError } from "../lib/api";
 import { useAuth } from "../lib/auth";
@@ -10,6 +10,9 @@ import { StatusBadge } from "../components/shared/StatusBadge";
 import { CategoryChip } from "../components/shared/CategoryIcon";
 import LocationPreview from "../components/shared/LocationPreview";
 import { toast } from "sonner";
+
+const BACKEND = process.env.REACT_APP_BACKEND_URL;
+const photoUrl = (p) => (p?.startsWith("http") ? p : `${BACKEND}${p}`);
 
 export default function IssueDetail() {
     const { id } = useParams();
@@ -22,6 +25,51 @@ export default function IssueDetail() {
     const [comment, setComment] = useState("");
     const [supported, setSupported] = useState(false);
     const [posting, setPosting] = useState(false);
+    const [closureOpen, setClosureOpen] = useState(false);
+    const [closureNote, setClosureNote] = useState("");
+    const [closureBusy, setClosureBusy] = useState(false);
+    const [decisionBusy, setDecisionBusy] = useState("");
+
+    const reload = async () => {
+        const [iss, cm] = await Promise.all([
+            api.get(`/issues/${id}`).then((r) => r.data),
+            api.get(`/issues/${id}/comments`).then((r) => r.data).catch(() => []),
+        ]);
+        setIssue(iss);
+        setComments(cm);
+    };
+
+    const submitClosureRequest = async () => {
+        if (closureNote.trim().length < 4) {
+            toast.error("Please describe what was done");
+            return;
+        }
+        setClosureBusy(true);
+        try {
+            await api.post(`/issues/${id}/request-closure`, { comment: closureNote.trim(), proof_photos: [] });
+            toast.success("Closure requested — an admin will verify");
+            setClosureOpen(false);
+            setClosureNote("");
+            await reload();
+        } catch (e) {
+            toast.error(formatApiError(e));
+        } finally {
+            setClosureBusy(false);
+        }
+    };
+
+    const decideClosure = async (decision) => {
+        setDecisionBusy(decision);
+        try {
+            await api.post(`/admin/issues/${id}/closure-decision`, { decision, remark: "" });
+            toast.success(decision === "approve" ? "Issue closed" : "Closure rejected — issue reopened");
+            await reload();
+        } catch (e) {
+            toast.error(formatApiError(e));
+        } finally {
+            setDecisionBusy("");
+        }
+    };
 
     useEffect(() => {
         setLoading(true);
@@ -123,13 +171,13 @@ export default function IssueDetail() {
                     {issue.photos?.length > 0 && (
                         <div className="space-y-2">
                             <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden border border-[#0A192F]/10">
-                                <img src={issue.photos[activePhoto]} alt={issue.title} className="w-full h-full object-cover" />
+                                <img src={photoUrl(issue.photos[activePhoto])} alt={issue.title} className="w-full h-full object-cover" />
                             </div>
                             {issue.photos.length > 1 && (
                                 <div className="flex gap-2 overflow-x-auto">
                                     {issue.photos.map((p, i) => (
                                         <button key={i} onClick={() => setActivePhoto(i)} className={`aspect-square w-20 shrink-0 rounded-md overflow-hidden border-2 ${activePhoto === i ? "border-[#FF9933]" : "border-transparent"}`} data-testid={`issue-photo-${i}`}>
-                                            <img src={p} className="w-full h-full object-cover" alt="" />
+                                            <img src={photoUrl(p)} className="w-full h-full object-cover" alt="" />
                                         </button>
                                     ))}
                                 </div>
@@ -161,6 +209,83 @@ export default function IssueDetail() {
                             <Flag size={15} /> Flag
                         </button>
                     </div>
+
+                    {/* Closure workflow */}
+                    {user && issue.owner_user_id === user.user_id && issue.status !== "closed" && issue.status !== "closure_requested" && (
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-5" data-testid="closure-request-panel">
+                            <div className="flex items-center gap-2 mb-2">
+                                <CheckCircle2 size={16} className="text-emerald-700" />
+                                <div className="font-serif text-lg text-[#0A192F]">Issue fixed?</div>
+                            </div>
+                            <p className="text-xs text-slate-600 mb-3">If the problem is resolved on the ground, request closure. An official will verify before it&apos;s permanently closed on the public ledger.</p>
+                            {closureOpen ? (
+                                <div className="space-y-3">
+                                    <textarea
+                                        rows={3}
+                                        value={closureNote}
+                                        onChange={(e) => setClosureNote(e.target.value)}
+                                        data-testid="closure-note-input"
+                                        placeholder="Describe what was done / when it was fixed (min 4 chars)"
+                                        className="w-full border border-emerald-200 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:border-emerald-600"
+                                    />
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={submitClosureRequest}
+                                            disabled={closureBusy}
+                                            data-testid="closure-submit"
+                                            className="inline-flex items-center gap-2 bg-emerald-700 text-white font-semibold px-4 py-2 rounded-md text-sm hover:bg-emerald-800 disabled:opacity-60"
+                                        >
+                                            {closureBusy && <Loader2 size={13} className="animate-spin" />}
+                                            Submit closure request
+                                        </button>
+                                        <button onClick={() => { setClosureOpen(false); setClosureNote(""); }} className="text-sm text-slate-500 px-3 py-2">Cancel</button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => setClosureOpen(true)}
+                                    data-testid="closure-open-btn"
+                                    className="inline-flex items-center gap-2 bg-emerald-700 text-white font-semibold px-4 py-2 rounded-md text-sm hover:bg-emerald-800"
+                                >
+                                    <CheckCircle2 size={14} /> Request closure
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {issue.status === "closure_requested" && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-5" data-testid="closure-pending-panel">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Clock size={15} className="text-amber-700" />
+                                <div className="font-serif text-lg text-[#0A192F]">Closure pending verification</div>
+                            </div>
+                            {issue.closure?.comment && (
+                                <p className="text-sm text-slate-700 italic mb-3">&ldquo;{issue.closure.comment}&rdquo; <span className="text-xs text-slate-500 not-italic">— {issue.closure.requested_by_name}</span></p>
+                            )}
+                            {user && (user.role === "admin" || user.role === "official") && (
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                    <button
+                                        onClick={() => decideClosure("approve")}
+                                        disabled={!!decisionBusy}
+                                        data-testid="closure-approve-btn"
+                                        className="inline-flex items-center gap-2 bg-emerald-700 text-white font-semibold px-4 py-2 rounded-md text-sm hover:bg-emerald-800 disabled:opacity-60"
+                                    >
+                                        {decisionBusy === "approve" ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
+                                        Approve & close
+                                    </button>
+                                    <button
+                                        onClick={() => decideClosure("reject")}
+                                        disabled={!!decisionBusy}
+                                        data-testid="closure-reject-btn"
+                                        className="inline-flex items-center gap-2 bg-white border border-red-200 text-red-700 font-semibold px-4 py-2 rounded-md text-sm hover:bg-red-50 disabled:opacity-60"
+                                    >
+                                        {decisionBusy === "reject" ? <Loader2 size={13} className="animate-spin" /> : <RotateCcw size={13} />}
+                                        Reject & reopen
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     <div className="bg-white border border-[#0A192F]/10 rounded-lg p-5 md:p-6" data-testid="issue-comments">
                         <div className="font-serif text-xl mb-4 text-[#0A192F]">Comments ({comments.length})</div>

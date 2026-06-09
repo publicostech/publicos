@@ -8,6 +8,9 @@ import { api } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
 import { toast } from "sonner";
 
+const BACKEND = process.env.REACT_APP_BACKEND_URL;
+const photoUrl = (p) => (p?.startsWith("http") ? p : `${BACKEND}${p}`);
+
 const timeAgo = (iso) => {
     if (!iso) return "—";
     const d = new Date(iso);
@@ -61,7 +64,7 @@ export const IssueCard = ({ issue, compact = false }) => {
             <Link to={`/issue/${issueId}`} className="block">
                 {issue.photos?.[0] && !compact && (
                     <div className="aspect-[16/9] overflow-hidden bg-slate-100 relative">
-                        <img src={issue.photos[0]} alt={issue.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <img src={photoUrl(issue.photos[0])} alt={issue.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute top-3 left-3">
                             <StatusBadge status={issue.status} />
                         </div>

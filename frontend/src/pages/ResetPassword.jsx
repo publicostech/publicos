@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api, formatApiError } from "../lib/api";
 import { Input } from "../components/ui/input";
@@ -15,6 +15,19 @@ export default function ResetPassword() {
     const [busy, setBusy] = useState(false);
     const [done, setDone] = useState(false);
     const [err, setErr] = useState("");
+    const [validating, setValidating] = useState(!!token);
+    const [tokenErr, setTokenErr] = useState("");
+    const [emailHint, setEmailHint] = useState("");
+
+    useEffect(() => {
+        if (!token) return;
+        let mounted = true;
+        api.post("/auth/reset-password/validate", { token })
+            .then((r) => { if (mounted) setEmailHint(r.data?.email || ""); })
+            .catch((e) => { if (mounted) setTokenErr(formatApiError(e)); })
+            .finally(() => { if (mounted) setValidating(false); });
+        return () => { mounted = false; };
+    }, [token]);
 
     const submit = async (e) => {
         e.preventDefault();
@@ -33,15 +46,23 @@ export default function ResetPassword() {
         }
     };
 
-    if (!token) {
+    if (!token || tokenErr) {
         return (
             <div className="min-h-[60vh] flex items-center justify-center p-6" data-testid="reset-invalid">
                 <div className="text-center max-w-sm">
                     <AlertTriangle size={36} className="mx-auto text-amber-600 mb-3" />
-                    <h1 className="font-serif text-2xl text-[#0A192F] mb-2">Invalid reset link</h1>
-                    <p className="text-sm text-slate-500 mb-4">This password reset link is missing or malformed.</p>
+                    <h1 className="font-serif text-2xl text-[#0A192F] mb-2">Reset link unavailable</h1>
+                    <p className="text-sm text-slate-500 mb-4">{tokenErr || "This password reset link is missing or malformed."}</p>
                     <Link to="/forgot-password" className="text-[#FF9933] font-semibold hover:underline">Request a new link</Link>
                 </div>
+            </div>
+        );
+    }
+
+    if (validating) {
+        return (
+            <div className="min-h-[60vh] flex items-center justify-center" data-testid="reset-validating">
+                <Loader2 size={28} className="animate-spin text-[#FF9933]" />
             </div>
         );
     }
@@ -52,6 +73,7 @@ export default function ResetPassword() {
                 <div className="text-center mb-7">
                     <div className="inline-block mb-5"><BrandLogo height={32} /></div>
                     <h1 className="font-serif text-2xl md:text-3xl text-[#0A192F]">Set a new password.</h1>
+                    {emailHint && <p className="text-xs text-slate-500 mt-2">For <span className="font-semibold text-[#0A192F]">{emailHint}</span></p>}
                 </div>
 
                 {done ? (

@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
-    Camera, MapPin, AlertCircle, ChevronRight, ChevronLeft, CheckCircle2, Eye, EyeOff, Upload, Navigation, Loader2,
+    Camera, MapPin, AlertCircle, ChevronRight, ChevronLeft, CheckCircle2, Eye, EyeOff, Upload, Navigation, Loader2, X, Sparkles,
 } from "lucide-react";
 import { CATEGORIES, URGENCIES } from "../lib/mockData";
 import { CategoryIcon } from "../components/shared/CategoryIcon";
@@ -12,6 +12,9 @@ import { Label } from "../components/ui/label";
 import { Switch } from "../components/ui/switch";
 import LocationPreview from "../components/shared/LocationPreview";
 import { api, formatApiError } from "../lib/api";
+
+const BACKEND = process.env.REACT_APP_BACKEND_URL;
+const fileUrl = (path) => (path?.startsWith("http") ? path : `${BACKEND}${path}`);
 
 const STEPS = [
     { id: 1, label: "Category" },
@@ -39,8 +42,74 @@ export default function Submit() {
         lng: null,
     });
     const [locating, setLocating] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [aiBusy, setAiBusy] = useState(false);
+    const fileInputRef = useRef(null);
 
     const update = (k, v) => setForm((prev) => ({ ...prev, [k]: v }));
+
+    const handleFileChange = async (e) => {
+        const files = Array.from(e.target.files || []);
+        if (!files.length) return;
+        if (form.photos.length + files.length > 5) {
+            toast.error("Max 5 photos per report");
+            return;
+        }
+        setUploading(true);
+        const uploaded = [];
+        for (const f of files) {
+            if (!f.type.startsWith("image/")) {
+                toast.error(`${f.name}: only images allowed`);
+                continue;
+            }
+            if (f.size > 10 * 1024 * 1024) {
+                toast.error(`${f.name}: exceeds 10MB`);
+                continue;
+            }
+            try {
+                const fd = new FormData();
+                fd.append("file", f);
+                const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
+                uploaded.push(data.url);
+            } catch (err) {
+                toast.error(`${f.name}: ${formatApiError(err)}`);
+            }
+        }
+        if (uploaded.length) {
+            setForm((p) => ({ ...p, photos: [...p.photos, ...uploaded] }));
+            toast.success(`${uploaded.length} photo(s) uploaded`);
+        }
+        setUploading(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+
+    const removePhoto = (idx) => {
+        setForm((p) => ({ ...p, photos: p.photos.filter((_, i) => i !== idx) }));
+    };
+
+    const aiSuggestCategory = async () => {
+        if (!form.title.trim() && !form.description.trim()) {
+            toast.info("Type a title or description first");
+            return;
+        }
+        setAiBusy(true);
+        try {
+            const { data } = await api.post("/ai/classify", {
+                title: form.title,
+                description: form.description,
+            });
+            if (data?.category) {
+                update("category", data.category);
+                toast.success(`AI picked: ${data.category}`);
+            } else {
+                toast.warning("Couldn't classify — please pick manually");
+            }
+        } catch (e) {
+            toast.error(formatApiError(e));
+        } finally {
+            setAiBusy(false);
+        }
+    };
 
     const detectLocation = async () => {
         if (!navigator.geolocation) {
@@ -99,7 +168,7 @@ export default function Submit() {
                 category: form.category,
                 urgency: form.urgency,
                 anonymous: form.anonymous,
-                photos: [],
+                photos: form.photos,
                 address: form.address,
                 city: form.city,
                 district: "",
@@ -190,9 +259,21 @@ export default function Submit() {
                 {/* Step 2: Details */}
                 {step === 2 && (
                     <div data-testid="submit-step-details" className="space-y-6">
-                        <div>
-                            <h2 className="font-serif text-2xl md:text-3xl mb-2">Tell us what's happening.</h2>
-                            <p className="text-slate-600 text-sm">Be specific. Specific complaints get fixed 2x faster.</p>
+                        <div className="flex items-start justify-between gap-3 flex-wrap">
+                            <div>
+                                <h2 className="font-serif text-2xl md:text-3xl mb-2">Tell us what's happening.</h2>
+                                <p className="text-slate-600 text-sm">Be specific. Specific complaints get fixed 2x faster.</p>
+                            </div>
+                            <button
+                                onClick={aiSuggestCategory}
+                                disabled={aiBusy}
+                                data-testid="submit-ai-classify"
+                                className="inline-flex items-center gap-2 text-xs font-semibold text-[#0A192F] bg-amber-100 border border-amber-200 hover:bg-amber-200 px-3 py-2 rounded-md disabled:opacity-50"
+                                title="Let AI re-suggest a category from your title + description"
+                            >
+                                {aiBusy ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                                {aiBusy ? "Thinking…" : "AI re-classify"}
+                            </button>
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="title">Title</Label>
@@ -260,26 +341,45 @@ export default function Submit() {
                 {/* Step 3: Media */}
                 {step === 3 && (
                     <div data-testid="submit-step-media">
-                        <h2 className="font-serif text-2xl md:text-3xl mb-2">Add photos or video.</h2>
-                        <p className="text-slate-600 mb-8 text-sm">Evidence makes your report 3x more credible.</p>
+                        <h2 className="font-serif text-2xl md:text-3xl mb-2">Add photos.</h2>
+                        <p className="text-slate-600 mb-8 text-sm">Evidence makes your report 3x more credible. JPG / PNG / WEBP up to 10 MB each (max 5).</p>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            multiple
+                            onChange={handleFileChange}
+                            className="hidden"
+                            data-testid="submit-file-input"
+                        />
                         <div className="border-2 border-dashed border-[#0A192F]/15 rounded-lg p-10 text-center bg-[#FAF9F6]">
                             <Upload size={32} strokeWidth={1.5} className="mx-auto text-slate-400 mb-4" />
-                            <div className="font-semibold text-[#0A192F] mb-1">Drop files here or click to upload</div>
-                            <div className="text-xs text-slate-500 mb-4">JPG, PNG, MP4 up to 50 MB each · max 5 files</div>
+                            <div className="font-semibold text-[#0A192F] mb-1">Upload real photos of the issue</div>
+                            <div className="text-xs text-slate-500 mb-4">JPG · PNG · WEBP up to 10 MB · max 5</div>
                             <button
-                                onClick={() => {
-                                    update("photos", ["mock-photo-1.jpg", "mock-photo-2.jpg"]);
-                                    toast.success("2 photos attached (mocked)");
-                                }}
-                                data-testid="submit-upload-mock"
-                                className="inline-flex items-center gap-2 bg-[#0A192F] text-white font-semibold px-5 py-2.5 rounded-md hover:bg-[#FF9933] transition-colors"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={uploading || form.photos.length >= 5}
+                                data-testid="submit-upload-btn"
+                                className="inline-flex items-center gap-2 bg-[#0A192F] text-white font-semibold px-5 py-2.5 rounded-md hover:bg-[#FF9933] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                             >
-                                <Camera size={15} /> Simulate upload
+                                {uploading ? <Loader2 size={15} className="animate-spin" /> : <Camera size={15} />}
+                                {uploading ? "Uploading…" : form.photos.length >= 5 ? "Max 5 reached" : "Choose photos"}
                             </button>
                         </div>
                         {form.photos.length > 0 && (
-                            <div className="mt-4 font-mono text-xs text-emerald-700">
-                                ✓ {form.photos.length} file(s) attached
+                            <div className="mt-5 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3" data-testid="submit-photos-preview">
+                                {form.photos.map((p, i) => (
+                                    <div key={i} className="relative aspect-square border border-[#0A192F]/10 rounded-md overflow-hidden group">
+                                        <img src={fileUrl(p)} alt="" className="w-full h-full object-cover" />
+                                        <button
+                                            onClick={() => removePhoto(i)}
+                                            data-testid={`submit-photo-remove-${i}`}
+                                            className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                        >
+                                            <X size={12} />
+                                        </button>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>

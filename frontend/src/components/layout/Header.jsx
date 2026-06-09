@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Menu, X, Languages, ChevronDown, LogOut, User as UserIcon, LayoutDashboard, Shield } from "lucide-react";
+import { Menu, X, Languages, ChevronDown, LogOut, User as UserIcon, LayoutDashboard, Shield, Landmark } from "lucide-react";
 import { useLang } from "../../lib/i18n";
 import { useAuth } from "../../lib/auth";
 import { BrandLogo } from "../shared/BrandLogo";
@@ -67,6 +67,11 @@ export const Header = () => {
                             {t("nav.admin")}
                         </NavLink>
                     )}
+                    {(user?.role === "admin" || user?.role === "official") && (
+                        <NavLink to="/official" className={navLinkCls} data-testid="nav-official">
+                            {t("nav.official")}
+                        </NavLink>
+                    )}
                 </nav>
 
                 <div className="hidden lg:flex items-center gap-3">
@@ -129,6 +134,11 @@ export const Header = () => {
                                             <Shield size={14} className="mr-2" /> Admin
                                         </DropdownMenuItem>
                                     )}
+                                    {(user.role === "admin" || user.role === "official") && (
+                                        <DropdownMenuItem onClick={() => navigate("/official")} data-testid="menu-official">
+                                            <Landmark size={14} className="mr-2" /> Official portal
+                                        </DropdownMenuItem>
+                                    )}
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem onClick={async () => { await logout(); navigate("/"); }} data-testid="menu-logout" className="text-red-600 focus:text-red-700">
                                         <LogOut size={14} className="mr-2" /> Log out
@@ -179,6 +189,11 @@ export const Header = () => {
                         {user?.role === "admin" && (
                             <NavLink to="/admin" className={navLinkCls} onClick={() => setOpen(false)} data-testid="mobile-nav-admin">
                                 {t("nav.admin")}
+                            </NavLink>
+                        )}
+                        {(user?.role === "admin" || user?.role === "official") && (
+                            <NavLink to="/official" className={navLinkCls} onClick={() => setOpen(false)} data-testid="mobile-nav-official">
+                                {t("nav.official")}
                             </NavLink>
                         )}
                         <div className="flex gap-2 pt-2 border-t border-[#0A192F]/10">

@@ -36,7 +36,9 @@ function AppRoutes() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/issue/:id" element={<IssueDetail />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/official" element={<OfficialPanel />} />
+            <Route path="/official" element={
+                <ProtectedRoute officialOrAdmin><OfficialPanel /></ProtectedRoute>
+            } />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
