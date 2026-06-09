@@ -68,8 +68,8 @@ export default function Login() {
     };
 
     return (
-        <div data-testid="page-login" className="relative min-h-[calc(100vh-160px)] overflow-hidden bg-[#0A192F]">
-            <div className="relative max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 min-h-[calc(100vh-160px)]">
+        <div data-testid="page-login" className="relative overflow-hidden bg-[#0A192F] mb-[-6rem]">
+            <div className="relative grid grid-cols-1 lg:grid-cols-2 min-h-[calc(100vh-72px)]">
                 {/* LEFT — Inspiration panel with dark navy + golden illustration */}
                 <div className="relative hidden lg:flex flex-col justify-between p-12 overflow-hidden">
                     <div
