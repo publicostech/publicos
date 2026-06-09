@@ -126,6 +126,8 @@ const translations = {
             champ_volunteers: "Volunteer Leaders",
             champ_changemakers: "Local Change Makers",
             champ_social: "Social Impact Organisations",
+            champ_launching: "Recognition launching soon",
+            champ_be_first: "Be among the first",
 
             cta_title: "The change you want to see starts with one report.",
             cta_sub: "Join a growing movement focused on transparency, accountability, and citizen-driven governance. Together, we can create stronger communities and more responsive public systems.",
@@ -302,6 +304,8 @@ const translations = {
             champ_volunteers: "स्वयंसेवक नेता",
             champ_changemakers: "स्थानीय परिवर्तनकर्ता",
             champ_social: "सामाजिक प्रभाव संगठन",
+            champ_launching: "मान्यता जल्द शुरू हो रही है",
+            champ_be_first: "सबसे पहले बनें",
 
             cta_title: "जो बदलाव आप देखना चाहते हैं, वह एक रिपोर्ट से शुरू होता है।",
             cta_sub: "पारदर्शिता, जवाबदेही, और नागरिक-संचालित शासन पर केंद्रित बढ़ते आंदोलन में शामिल हों। मिलकर हम मज़बूत समुदाय और अधिक उत्तरदायी सार्वजनिक प्रणालियाँ बना सकते हैं।",
@@ -478,6 +482,8 @@ const translations = {
             champ_volunteers: "వాలంటీర్ నాయకులు",
             champ_changemakers: "స్థానిక మార్పు సృష్టికర్తలు",
             champ_social: "సామాజిక ప్రభావ సంస్థలు",
+            champ_launching: "గుర్తింపు త్వరలో ప్రారంభమవుతోంది",
+            champ_be_first: "మొదటివారిలో ఉండండి",
 
             cta_title: "మీరు చూడాలనుకుంటున్న మార్పు ఒక నివేదికతో మొదలవుతుంది.",
             cta_sub: "పారదర్శకత, జవాబుదారీతనం మరియు పౌర-ఆధారిత పాలనపై దృష్టి సారించిన పెరుగుతున్న ఉద్యమంలో చేరండి. కలిసి, మేము బలమైన సంఘాలను మరియు మరింత ప్రతిస్పందించే ప్రజా వ్యవస్థలను సృష్టించగలము.",

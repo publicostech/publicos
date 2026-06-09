@@ -346,15 +346,15 @@ export default function Landing() {
                             </p>
                             <div className="mt-8 inline-flex items-center gap-2 px-4 py-2 border border-[#FF9933]/40 rounded-full bg-[#FF9933]/10">
                                 <Sparkles size={14} className="text-[#FF9933]" />
-                                <span className="text-xs font-semibold text-[#FF9933] uppercase tracking-widest">Recognition launching soon</span>
+                                <span className="text-xs font-semibold text-[#FF9933] uppercase tracking-widest">{t("landing.champ_launching")}</span>
                             </div>
                         </div>
                         <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <ChampionCategory icon={Award} title={t("landing.champ_contrib")} />
-                            <ChampionCategory icon={Users} title={t("landing.champ_advocates")} />
-                            <ChampionCategory icon={HandHeart} title={t("landing.champ_volunteers")} />
-                            <ChampionCategory icon={Sparkles} title={t("landing.champ_changemakers")} />
-                            <ChampionCategory icon={Building2} title={t("landing.champ_social")} fullWidth />
+                            <ChampionCategory icon={Award} title={t("landing.champ_contrib")} sub={t("landing.champ_be_first")} />
+                            <ChampionCategory icon={Users} title={t("landing.champ_advocates")} sub={t("landing.champ_be_first")} />
+                            <ChampionCategory icon={HandHeart} title={t("landing.champ_volunteers")} sub={t("landing.champ_be_first")} />
+                            <ChampionCategory icon={Sparkles} title={t("landing.champ_changemakers")} sub={t("landing.champ_be_first")} />
+                            <ChampionCategory icon={Building2} title={t("landing.champ_social")} sub={t("landing.champ_be_first")} fullWidth />
                         </div>
                     </div>
                 </div>
@@ -442,7 +442,7 @@ const CommunityCard = ({ icon: Icon, title, desc, bg, accent, testid }) => (
     </div>
 );
 
-const ChampionCategory = ({ icon: Icon, title, fullWidth = false }) => (
+const ChampionCategory = ({ icon: Icon, title, sub, fullWidth = false }) => (
     <div
         className={`group ${fullWidth ? "sm:col-span-2" : ""} flex items-center gap-4 p-5 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-[#FF9933]/40 transition-colors`}
     >
@@ -451,7 +451,7 @@ const ChampionCategory = ({ icon: Icon, title, fullWidth = false }) => (
         </div>
         <div className="flex-1 min-w-0">
             <div className="font-semibold text-base">{title}</div>
-            <div className="text-[11px] uppercase tracking-widest text-white/40 mt-0.5">Be among the first</div>
+            <div className="text-[11px] uppercase tracking-widest text-white/40 mt-0.5">{sub}</div>
         </div>
         <ArrowRight size={14} className="text-white/30 group-hover:text-[#FF9933] group-hover:translate-x-1 transition-all" />
     </div>
