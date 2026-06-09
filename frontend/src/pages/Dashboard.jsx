@@ -127,7 +127,13 @@ export default function Dashboard() {
                 <div className="flex flex-wrap gap-3 justify-center">
                     <Link
                         to="/#waitlist"
-                        onClick={(e) => { e.preventDefault(); document.querySelector("[data-testid='waitlist-section']")?.scrollIntoView({ behavior: "smooth" }); }}
+                        onClick={(e) => {
+                            const el = document.querySelector("[data-testid='waitlist-section']");
+                            if (el) {
+                                e.preventDefault();
+                                el.scrollIntoView({ behavior: "smooth" });
+                            }
+                        }}
                         className="inline-flex items-center gap-2 bg-[#0A192F] text-white font-semibold px-5 py-3 rounded-lg hover:bg-[#FF9933] transition-colors"
                         data-testid="dashboard-waitlist-cta"
                     >

@@ -43,6 +43,7 @@ Build a modern, scalable civic-tech web platform where citizens can report local
 | 2026-02-09 | Colorful pastel redesign — Topics / How-It-Works / Communities / Champions / Knowledge Hub |
 | 2026-02-09 | Founding-citizen waitlist — `POST /api/waitlist`, admin Waitlist tab with city analytics, i18n EN/HI/TE |
 | 2026-02-09 | Hero pillar card upgraded — uses 4 custom 3D illustrations (orange/blue/green/purple) as crossfading backgrounds with text floating on left half. Hero layout itself unchanged. |
+| 2026-02-09 | 6-item UX revamp — colorful gradient Login/Register, Dashboard "Coming Soon" pre-launch state, Knowledge Hub real photos, How-It-Works mobile tightening, mobile responsiveness pass, hash-aware cross-route waitlist scroll. |
 
 ## 7. Backlog
 ### P1

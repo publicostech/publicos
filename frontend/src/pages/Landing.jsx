@@ -1,5 +1,5 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
     ArrowRight, ShieldCheck, Users, Eye, BarChart3,
@@ -13,6 +13,26 @@ import { useLang } from "../lib/i18n";
 
 export default function Landing() {
     const { t, lang } = useLang();
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.hash !== "#waitlist") return;
+        let attempts = 0;
+        let foundAt = -1;
+        const id = setInterval(() => {
+            const el = document.querySelector("[data-testid='waitlist-section']");
+            if (el) {
+                el.scrollIntoView({ behavior: foundAt === -1 ? "smooth" : "auto", block: "start" });
+                if (foundAt === -1) foundAt = attempts;
+                // Keep correcting for 1.5s after first scroll so late image loads can't push it off
+                if (attempts - foundAt > 10) {
+                    clearInterval(id);
+                }
+            }
+            if (++attempts > 40) clearInterval(id);
+        }, 150);
+        return () => clearInterval(id);
+    }, [location]);
 
     const tickerPromises = [
         t("landing.ticker_promise_1"),
@@ -432,7 +452,7 @@ export default function Landing() {
                                         className="rounded-xl overflow-hidden bg-[#FAF9F6] border border-[#0A192F]/5 hover:-translate-y-1 transition-all duration-300 hover:shadow-md flex flex-col"
                                     >
                                         <div className="aspect-[5/3] overflow-hidden" style={{ background: a.bg }}>
-                                            <img src={a.img} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                                            <img src={a.img} alt="" loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                                         </div>
                                         <div className="p-4 flex-1 flex flex-col">
                                             <span
