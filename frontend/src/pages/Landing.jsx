@@ -34,7 +34,7 @@ export default function Landing() {
                             "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
                     }}
                 />
-                <div className="max-w-7xl mx-auto px-6 md:px-12 pt-14 md:pt-20 pb-20">
+                <div className="max-w-7xl mx-auto px-5 sm:px-6 md:px-12 pt-14 md:pt-20 pb-20">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                         <div className="lg:col-span-7 space-y-8">
                             <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-[#0A192F]/15 rounded-full bg-white">
@@ -106,7 +106,7 @@ export default function Landing() {
 
             {/* CIVIC PROMISE TICKER */}
             <section className="bg-[#0A192F] text-white py-3 border-y-2 border-[#FF9933] overflow-hidden">
-                <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center gap-6">
+                <div className="max-w-7xl mx-auto px-5 sm:px-6 md:px-12 flex items-center gap-6">
                     <div className="overline text-[#FF9933] shrink-0 inline-flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#FF9933] animate-pulse" />
                         {t("landing.ticker")}
@@ -125,7 +125,7 @@ export default function Landing() {
             </section>
 
             {/* MISSION — replaces 'India's Civic Pulse' bento */}
-            <section className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28" data-testid="mission-section">
+            <section className="max-w-7xl mx-auto px-5 sm:px-6 md:px-12 py-14 sm:py-16 md:py-24" data-testid="mission-section">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-14">
                     <div className="lg:col-span-5">
                         <div className="overline text-[#FF9933] mb-3">{t("landing.mission_eyebrow")}</div>
@@ -174,25 +174,25 @@ export default function Landing() {
 
             {/* HOW IT WORKS — 4 steps with colorful cards */}
             <section className="bg-[#FAF9F6] border-y border-[#0A192F]/5">
-                <div className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start mb-12">
+                <div className="max-w-7xl mx-auto px-5 sm:px-5 sm:px-6 md:px-12 py-12 sm:py-16 md:py-24">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10 items-start mb-8 md:mb-12">
                         <div className="lg:col-span-5">
-                            <div className="overline text-[#FF9933] mb-3">{t("landing.loop_eyebrow")}</div>
-                            <h2 className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F] leading-tight">
+                            <div className="overline text-[#FF9933] mb-2 md:mb-3">{t("landing.loop_eyebrow")}</div>
+                            <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl tracking-tight text-[#0A192F] leading-tight">
                                 {t("landing.loop_title")}
                             </h2>
-                            <p className="text-slate-600 leading-relaxed mt-5 max-w-md">
+                            <p className="text-sm md:text-base text-slate-600 leading-relaxed mt-4 max-w-md">
                                 {t("landing.loop_sub")}
                             </p>
                             <Link
                                 to="/submit"
-                                className="inline-flex items-center gap-2 mt-8 bg-[#FF9933] text-white font-semibold px-5 py-3 rounded-lg hover:bg-[#0A192F] transition-colors"
+                                className="inline-flex items-center gap-2 mt-5 md:mt-7 bg-[#FF9933] text-white font-semibold px-5 py-3 rounded-lg hover:bg-[#0A192F] transition-colors"
                                 data-testid="how-learn-more"
                             >
                                 {t("landing.how_learn_more")} <ArrowRight size={14} />
                             </Link>
                         </div>
-                        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="lg:col-span-7 grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                             {[
                                 { n: 1, icon: FileText, titleKey: "landing.step1_title", textKey: "landing.step1_text", bg: "#FFEAD9", badge: "#FF6B35" },
                                 { n: 2, icon: MessagesSquare, titleKey: "landing.step2_title", textKey: "landing.step2_text", bg: "#FFF4CC", badge: "#F59E0B" },
@@ -202,7 +202,7 @@ export default function Landing() {
                                 <div
                                     key={step.n}
                                     data-testid={`how-step-0${step.n}`}
-                                    className="relative rounded-2xl p-6 pt-10 hover:-translate-y-1 transition-all duration-300 hover:shadow-lg min-h-[260px] flex flex-col"
+                                    className="relative rounded-2xl p-4 sm:p-5 pt-8 sm:pt-10 hover:-translate-y-1 transition-all duration-300 hover:shadow-lg min-h-[200px] sm:min-h-[230px] flex flex-col"
                                     style={{ background: step.bg }}
                                 >
                                     <div
@@ -232,7 +232,7 @@ export default function Landing() {
 
             {/* ISSUES THAT MATTER MOST — Community Focus */}
             <section className="bg-white border-y border-[#0A192F]/5">
-                <div className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28" data-testid="topics-section">
+                <div className="max-w-7xl mx-auto px-5 sm:px-6 md:px-12 py-14 sm:py-16 md:py-24" data-testid="topics-section">
                     <div className="max-w-2xl mb-12 text-center mx-auto">
                         <div className="overline text-[#FF9933] mb-3">{t("landing.topics_eyebrow")}</div>
                         <h2 className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F]">
@@ -284,7 +284,7 @@ export default function Landing() {
 
             {/* GROWING TOGETHER — Map */}
             <section className="bg-[#FAF9F6] border-y border-[#0A192F]/10">
-                <div className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
+                <div className="max-w-7xl mx-auto px-5 sm:px-6 md:px-12 py-14 sm:py-16 md:py-24">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
                         <div className="lg:col-span-5 space-y-6">
                             <div className="overline text-[#FF9933]">{t("landing.map_eyebrow")}</div>
@@ -315,7 +315,7 @@ export default function Landing() {
             </section>
 
             {/* BUILT FOR EVERY COMMUNITY */}
-            <section className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28" data-testid="community-section">
+            <section className="max-w-7xl mx-auto px-5 sm:px-6 md:px-12 py-14 sm:py-16 md:py-24" data-testid="community-section">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center mb-12">
                     <div className="lg:col-span-5">
                         <div className="overline text-[#FF9933] mb-3">{t("landing.cities_eyebrow")}</div>
@@ -365,7 +365,7 @@ export default function Landing() {
 
             {/* COMMUNITY CHAMPIONS — light themed, colorful circular icons */}
             <section className="bg-white border-y border-[#0A192F]/5" data-testid="champions-section">
-                <div className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
+                <div className="max-w-7xl mx-auto px-5 sm:px-6 md:px-12 py-14 sm:py-16 md:py-24">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
                         <div className="lg:col-span-6">
                             <div className="overline text-[#FF9933] mb-3">{t("landing.champions_eyebrow")}</div>
@@ -422,17 +422,17 @@ export default function Landing() {
                             </p>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 {[
-                                    { tagKey: "hub_a1_tag", titleKey: "hub_a1_title", bg: "#FFEAD9", tagColor: "#FF6B35", id: "civic-education" },
-                                    { tagKey: "hub_a2_tag", titleKey: "hub_a2_title", bg: "#D4F5E1", tagColor: "#10B981", id: "success-story" },
-                                    { tagKey: "hub_a3_tag", titleKey: "hub_a3_title", bg: "#DAEFFB", tagColor: "#3B82F6", id: "smart-governance" },
+                                    { tagKey: "hub_a1_tag", titleKey: "hub_a1_title", bg: "#FFEAD9", tagColor: "#FF6B35", id: "civic-education", img: "https://customer-assets.emergentagent.com/job_civictrack-3/artifacts/ejc93xak_a1.png" },
+                                    { tagKey: "hub_a2_tag", titleKey: "hub_a2_title", bg: "#D4F5E1", tagColor: "#10B981", id: "success-story", img: "https://customer-assets.emergentagent.com/job_civictrack-3/artifacts/mg8e5d96_a3.png" },
+                                    { tagKey: "hub_a3_tag", titleKey: "hub_a3_title", bg: "#DAEFFB", tagColor: "#3B82F6", id: "smart-governance", img: "https://customer-assets.emergentagent.com/job_civictrack-3/artifacts/8p2gz7xl_a2.png" },
                                 ].map((a) => (
                                     <div
                                         key={a.id}
                                         data-testid={`hub-${a.id}`}
                                         className="rounded-xl overflow-hidden bg-[#FAF9F6] border border-[#0A192F]/5 hover:-translate-y-1 transition-all duration-300 hover:shadow-md flex flex-col"
                                     >
-                                        <div className="aspect-[5/3] flex items-center justify-center" style={{ background: a.bg }}>
-                                            <Sparkles size={28} style={{ color: a.tagColor }} strokeWidth={1.75} />
+                                        <div className="aspect-[5/3] overflow-hidden" style={{ background: a.bg }}>
+                                            <img src={a.img} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                                         </div>
                                         <div className="p-4 flex-1 flex flex-col">
                                             <span
@@ -458,7 +458,7 @@ export default function Landing() {
             <WaitlistStrip />
 
             {/* FINAL CTA — Dark navy with strong saffron CTA */}
-            <section className="max-w-7xl mx-auto px-6 md:px-12 py-12 md:py-16">
+            <section className="max-w-7xl mx-auto px-5 sm:px-6 md:px-12 py-12 md:py-16">
                 <div className="relative bg-[#0A192F] rounded-2xl overflow-hidden p-10 md:p-14">
                     {/* Subtle city skyline pattern */}
                     <div

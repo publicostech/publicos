@@ -1,216 +1,188 @@
-import React, { useState } from "react";
+import React from "react";
+import { Link } from "react-router-dom";
 import {
-    BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-    XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
-} from "recharts";
-import { TrendingUp, TrendingDown, Target, Clock, Award, ChevronDown } from "lucide-react";
-import {
-    STATE_LEADERBOARD, MONTHLY_TRENDS, CATEGORY_BREAKDOWN,
-    DEPARTMENT_EFFICIENCY, PLATFORM_STATS,
-} from "../lib/mockData";
-import {
-    Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "../components/ui/select";
-
-const CHART_COLORS = ["#0A192F", "#FF9933", "#138808", "#3B82F6", "#8B5CF6"];
-
-const KpiCard = ({ label, value, delta, trend, sub }) => (
-    <div className="p-6 border border-[#0A192F]/10 bg-white rounded-lg" data-testid={`kpi-${label.toLowerCase().replace(/\s+/g, "-")}`}>
-        <div className="overline text-slate-500 mb-3">{label}</div>
-        <div className="font-serif text-4xl text-[#0A192F] tracking-tight">{value}</div>
-        <div className="flex items-center gap-1.5 mt-3 text-xs font-mono">
-            {trend === "up" && <TrendingUp size={13} className="text-emerald-700" />}
-            {trend === "down" && <TrendingDown size={13} className="text-red-600" />}
-            <span className={trend === "up" ? "text-emerald-700" : trend === "down" ? "text-red-600" : "text-slate-500"}>
-                {delta}
-            </span>
-            <span className="text-slate-400">{sub}</span>
-        </div>
-    </div>
-);
+    BarChart3, Map as MapIcon, TrendingUp, Award, Users, Clock,
+    ArrowRight, Sparkles, Zap, Shield, Globe2,
+} from "lucide-react";
+import { useLang } from "../lib/i18n";
 
 export default function Dashboard() {
-    const [scope, setScope] = useState("country");
-
+    const { t } = useLang();
     return (
-        <div data-testid="page-dashboard" className="max-w-7xl mx-auto px-6 md:px-12 py-10 md:py-14">
-            {/* Header */}
-            <div className="flex items-end justify-between flex-wrap gap-4 mb-10">
-                <div>
-                    <div className="overline text-[#FF9933] mb-3">Governance Dashboard</div>
-                    <h1 className="font-serif text-4xl md:text-5xl tracking-tight text-[#0A192F]">
-                        The scoreboard India deserves.
+        <div data-testid="page-dashboard" className="max-w-7xl mx-auto px-5 sm:px-6 md:px-12 py-10 md:py-16">
+            {/* Pre-launch banner */}
+            <div className="mb-8 md:mb-12 inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full" data-testid="dashboard-prelaunch-banner">
+                <Sparkles size={13} className="text-amber-700" />
+                <span className="overline text-amber-800">Pre-launch · Data populating soon</span>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10 mb-10 md:mb-14">
+                <div className="lg:col-span-7">
+                    <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl tracking-tight text-[#0A192F] leading-tight mb-3 md:mb-4">
+                        Public dashboards <span className="italic text-[#FF9933]">arrive with our first city.</span>
                     </h1>
-                    <p className="text-slate-600 mt-2 max-w-xl">
-                        From pincode to parliament. Drill down. Compare. Export. All data refreshes every 60 seconds.
+                    <p className="text-slate-600 leading-relaxed text-sm md:text-base max-w-xl">
+                        Every PublicOS dashboard is built to render real, verified civic data — no fake counters, no manufactured metrics. As soon as the first community goes live, this page will breathe with live state-wise reports, response times, and resolution scores. Until then, here&apos;s what&apos;s coming.
                     </p>
                 </div>
-                <div className="flex gap-3 items-center">
-                    <div className="overline text-slate-500">View</div>
-                    <Select value={scope} onValueChange={setScope}>
-                        <SelectTrigger className="w-44" data-testid="dashboard-scope"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="country">Country</SelectItem>
-                            <SelectItem value="state">State</SelectItem>
-                            <SelectItem value="district">District</SelectItem>
-                            <SelectItem value="mandal">Mandal</SelectItem>
-                            <SelectItem value="pincode">Pincode</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
-
-            {/* KPI Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <KpiCard label="Open issues" value={`${(PLATFORM_STATS.total_reports - PLATFORM_STATS.resolved).toLocaleString()}`} delta="+12.4%" trend="up" sub="vs last month" />
-                <KpiCard label="Resolution rate" value="68%" delta="+3.1%" trend="up" sub="national avg" />
-                <KpiCard label="Avg closure" value="9.4d" delta="-1.2d" trend="up" sub="faster than Q4" />
-                <KpiCard label="SLA breaches" value="4,218" delta="+8.9%" trend="down" sub="needs attention" />
-            </div>
-
-            {/* Trend + Category */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-                <div className="lg:col-span-2 bg-white border border-[#0A192F]/10 rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <div className="overline text-slate-500 mb-1">Monthly activity</div>
-                            <div className="font-serif text-xl text-[#0A192F]">Reported vs Resolved</div>
+                <div className="lg:col-span-5">
+                    <div
+                        className="relative rounded-2xl p-6 overflow-hidden text-white"
+                        style={{ background: "linear-gradient(135deg, #0A192F 0%, #1a3358 100%)" }}
+                    >
+                        <div className="overline text-[#FF9933] mb-3">Our promise</div>
+                        <div className="font-serif text-xl md:text-2xl leading-tight mb-3">
+                            Only real numbers go on the public ledger.
                         </div>
-                        <div className="flex gap-3 text-xs">
-                            <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#0A192F]" /> Reported</span>
-                            <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#138808]" /> Resolved</span>
-                        </div>
-                    </div>
-                    <ResponsiveContainer width="100%" height={280}>
-                        <BarChart data={MONTHLY_TRENDS} barGap={4}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                            <XAxis dataKey="month" tick={{ fontSize: 12, fontFamily: "JetBrains Mono" }} stroke="#94a3b8" />
-                            <YAxis tick={{ fontSize: 11, fontFamily: "JetBrains Mono" }} stroke="#94a3b8" />
-                            <Tooltip contentStyle={{ background: "#0A192F", border: "none", borderRadius: 6, color: "white", fontSize: 12 }} cursor={{ fill: "rgba(10,25,47,0.04)" }} />
-                            <Bar dataKey="reported" fill="#0A192F" radius={[2, 2, 0, 0]} />
-                            <Bar dataKey="resolved" fill="#138808" radius={[2, 2, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-
-                <div className="bg-white border border-[#0A192F]/10 rounded-lg p-6">
-                    <div className="mb-4">
-                        <div className="overline text-slate-500 mb-1">Category mix</div>
-                        <div className="font-serif text-xl text-[#0A192F]">What citizens report</div>
-                    </div>
-                    <ResponsiveContainer width="100%" height={200}>
-                        <PieChart>
-                            <Pie
-                                data={CATEGORY_BREAKDOWN}
-                                innerRadius={48}
-                                outerRadius={78}
-                                paddingAngle={2}
-                                dataKey="value"
-                            >
-                                {CATEGORY_BREAKDOWN.map((entry, idx) => (
-                                    <Cell key={idx} fill={entry.color} />
-                                ))}
-                            </Pie>
-                            <Tooltip contentStyle={{ background: "#0A192F", border: "none", borderRadius: 6, color: "white", fontSize: 12 }} />
-                        </PieChart>
-                    </ResponsiveContainer>
-                    <div className="space-y-1.5 mt-4">
-                        {CATEGORY_BREAKDOWN.map((c) => (
-                            <div key={c.name} className="flex items-center justify-between text-xs">
-                                <span className="inline-flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full" style={{ background: c.color }} />
-                                    {c.name}
-                                </span>
-                                <span className="font-mono text-slate-500">{c.value.toLocaleString()}</span>
-                            </div>
-                        ))}
+                        <p className="text-xs md:text-sm text-white/70 leading-relaxed">
+                            Every chart here will source from verified citizen reports and officially-acknowledged actions. No estimates. No projections. No PR spin.
+                        </p>
+                        <div className="absolute -bottom-10 -right-10 w-48 h-48 rounded-full blur-3xl bg-[#FF9933]/40" />
                     </div>
                 </div>
             </div>
 
-            {/* Leaderboard + Dept efficiency */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-                <div className="bg-white border border-[#0A192F]/10 rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-5">
-                        <div>
-                            <div className="overline text-slate-500 mb-1 flex items-center gap-2"><Award size={12} /> State leaderboard</div>
-                            <div className="font-serif text-xl text-[#0A192F]">Civic Performance Index</div>
-                        </div>
-                    </div>
-                    <div className="space-y-2" data-testid="state-leaderboard">
-                        {STATE_LEADERBOARD.slice(0, 8).map((s, i) => (
-                            <div key={s.state} className="flex items-center gap-3 p-3 border border-[#0A192F]/5 rounded-md hover:bg-[#FAF9F6]">
-                                <div className="font-mono text-sm text-slate-400 w-6">{String(i + 1).padStart(2, "0")}</div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="font-semibold text-sm text-[#0A192F]">{s.state}</div>
-                                    <div className="text-[11px] text-slate-500 font-mono">{s.resolved.toLocaleString()} resolved · {s.avg_days}d avg</div>
-                                </div>
-                                <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full rounded-full"
-                                        style={{
-                                            width: `${s.score}%`,
-                                            background: s.score > 80 ? "#138808" : s.score > 65 ? "#FF9933" : "#dc2626",
-                                        }}
-                                    />
-                                </div>
-                                <div className="font-mono font-bold text-sm w-10 text-right text-[#0A192F]">{s.score}</div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="bg-white border border-[#0A192F]/10 rounded-lg p-6">
-                    <div className="mb-5">
-                        <div className="overline text-slate-500 mb-1 flex items-center gap-2"><Target size={12} /> Department efficiency</div>
-                        <div className="font-serif text-xl text-[#0A192F]">SLA compliance across depts</div>
-                    </div>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={DEPARTMENT_EFFICIENCY} layout="vertical" margin={{ left: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
-                            <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11, fontFamily: "JetBrains Mono" }} stroke="#94a3b8" />
-                            <YAxis type="category" dataKey="dept" tick={{ fontSize: 11 }} width={100} stroke="#64748b" />
-                            <Tooltip contentStyle={{ background: "#0A192F", border: "none", borderRadius: 6, color: "white", fontSize: 12 }} cursor={{ fill: "rgba(10,25,47,0.04)" }} />
-                            <Bar dataKey="sla" fill="#0A192F" radius={[0, 4, 4, 0]}>
-                                {DEPARTMENT_EFFICIENCY.map((d, i) => (
-                                    <Cell key={i} fill={d.sla > 85 ? "#138808" : d.sla > 75 ? "#FF9933" : "#dc2626"} />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
+            {/* Coming-soon panels grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5" data-testid="dashboard-panels">
+                <ComingPanel
+                    icon={BarChart3}
+                    title="National pulse"
+                    desc="Total open / resolved / in-progress reports across India — refreshed live."
+                    bg="#FFEAD9" accent="#FF6B35"
+                    eta="Goes live with launch city #1"
+                    testid="panel-pulse"
+                />
+                <ComingPanel
+                    icon={MapIcon}
+                    title="State leaderboard"
+                    desc="Resolution rate, average days-to-close, citizen satisfaction — ranked by state."
+                    bg="#DAEFFB" accent="#3B82F6"
+                    eta="Once 5+ states have active reports"
+                    testid="panel-leaderboard"
+                />
+                <ComingPanel
+                    icon={TrendingUp}
+                    title="Category trends"
+                    desc="Which civic concerns are rising fastest, broken down by month + region."
+                    bg="#D4F5E1" accent="#10B981"
+                    eta="After 3 months of live data"
+                    testid="panel-trends"
+                />
+                <ComingPanel
+                    icon={Award}
+                    title="Department report card"
+                    desc="Per-department SLA performance — who responds fast, who needs follow-up."
+                    bg="#E8DCFB" accent="#8B5CF6"
+                    eta="Once officials are onboarded in your city"
+                    testid="panel-departments"
+                />
+                <ComingPanel
+                    icon={Users}
+                    title="Founding citizens map"
+                    desc="See where the movement is growing — waitlist density by city + state."
+                    bg="#FFF4CC" accent="#F59E0B"
+                    eta="Visible to admins today · public at 1,000 signups"
+                    testid="panel-citizens"
+                />
+                <ComingPanel
+                    icon={Clock}
+                    title="Response-time heatmap"
+                    desc="Average time from report → first acknowledgement → resolution, by pincode."
+                    bg="#FFE0E0" accent="#EF4444"
+                    eta="Goes live with launch city #1"
+                    testid="panel-response"
+                />
             </div>
 
-            {/* SLA trend */}
-            <div className="bg-white border border-[#0A192F]/10 rounded-lg p-6 mb-6">
-                <div className="mb-5">
-                    <div className="overline text-slate-500 mb-1 flex items-center gap-2"><Clock size={12} /> Response time</div>
-                    <div className="font-serif text-xl text-[#0A192F]">Avg resolution trend (days)</div>
-                </div>
-                <ResponsiveContainer width="100%" height={240}>
-                    <LineChart data={MONTHLY_TRENDS.map((m, i) => ({ ...m, avg: 11 - i * 0.3 + (i % 2 ? 0.4 : -0.2) }))}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                        <XAxis dataKey="month" tick={{ fontSize: 12, fontFamily: "JetBrains Mono" }} stroke="#94a3b8" />
-                        <YAxis tick={{ fontSize: 11, fontFamily: "JetBrains Mono" }} stroke="#94a3b8" />
-                        <Tooltip contentStyle={{ background: "#0A192F", border: "none", borderRadius: 6, color: "white", fontSize: 12 }} />
-                        <Line type="monotone" dataKey="avg" stroke="#FF9933" strokeWidth={2.5} dot={{ r: 4, fill: "#FF9933" }} activeDot={{ r: 6 }} />
-                    </LineChart>
-                </ResponsiveContainer>
+            {/* Why this matters */}
+            <div className="mt-12 md:mt-16 grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+                <PillarStrip
+                    icon={Shield}
+                    title="Transparent by default"
+                    desc="Every number on these dashboards links back to the raw reports that generated it."
+                    accent="#10B981"
+                />
+                <PillarStrip
+                    icon={Zap}
+                    title="Real-time, not retrospective"
+                    desc="Charts update the moment officials act — no end-of-month manual rollups."
+                    accent="#FF6B35"
+                />
+                <PillarStrip
+                    icon={Globe2}
+                    title="Public, downloadable, auditable"
+                    desc="Journalists, researchers, and citizens can export raw data anytime."
+                    accent="#3B82F6"
+                />
             </div>
 
-            {/* Export */}
-            <div className="bg-[#0A192F] text-white rounded-lg p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div>
-                    <div className="overline text-[#FF9933] mb-2">Reports & exports</div>
-                    <div className="font-serif text-2xl">Download daily, weekly, or custom reports</div>
-                    <div className="text-sm text-white/60 mt-1">Available as PDF, Excel, CSV · RTI-compliant formatting</div>
-                </div>
-                <div className="flex gap-2 flex-wrap">
-                    <button data-testid="export-pdf" className="bg-[#FF9933] hover:bg-white hover:text-[#0A192F] transition-colors text-white font-semibold px-4 py-2.5 rounded-md text-sm">Download PDF</button>
-                    <button data-testid="export-excel" className="bg-white/10 hover:bg-white/20 font-semibold px-4 py-2.5 rounded-md text-sm">Excel</button>
-                    <button data-testid="export-csv" className="bg-white/10 hover:bg-white/20 font-semibold px-4 py-2.5 rounded-md text-sm">CSV</button>
+            {/* CTA */}
+            <div className="mt-12 md:mt-16 bg-[#FAF9F6] border border-[#0A192F]/10 rounded-2xl p-6 md:p-10 text-center" data-testid="dashboard-cta">
+                <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl text-[#0A192F] tracking-tight mb-3">
+                    Want these dashboards live in your city?
+                </h2>
+                <p className="text-sm md:text-base text-slate-600 max-w-xl mx-auto mb-6">
+                    The faster a city&apos;s waitlist grows, the sooner PublicOS launches there. Join the founding-citizens list and pull your community to the front of the queue.
+                </p>
+                <div className="flex flex-wrap gap-3 justify-center">
+                    <Link
+                        to="/#waitlist"
+                        onClick={(e) => { e.preventDefault(); document.querySelector("[data-testid='waitlist-section']")?.scrollIntoView({ behavior: "smooth" }); }}
+                        className="inline-flex items-center gap-2 bg-[#0A192F] text-white font-semibold px-5 py-3 rounded-lg hover:bg-[#FF9933] transition-colors"
+                        data-testid="dashboard-waitlist-cta"
+                    >
+                        Join the waitlist <ArrowRight size={14} />
+                    </Link>
+                    <Link
+                        to="/feed"
+                        className="inline-flex items-center gap-2 bg-white border border-[#0A192F]/15 text-[#0A192F] font-semibold px-5 py-3 rounded-lg hover:border-[#0A192F]"
+                    >
+                        Explore the public feed
+                    </Link>
                 </div>
             </div>
         </div>
     );
 }
+
+const ComingPanel = ({ icon: Icon, title, desc, bg, accent, eta, testid }) => (
+    <div
+        data-testid={testid}
+        className="relative rounded-2xl p-5 md:p-6 hover:-translate-y-1 transition-all duration-300 hover:shadow-md flex flex-col min-h-[220px]"
+        style={{ background: bg }}
+    >
+        <div className="flex items-start justify-between mb-5">
+            <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center bg-white/70 backdrop-blur-sm shadow-sm"
+                style={{ color: accent }}
+            >
+                <Icon size={22} strokeWidth={1.75} />
+            </div>
+            <span
+                className="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full bg-white/80 border"
+                style={{ color: accent, borderColor: accent + "55" }}
+                data-testid={`${testid}-coming-soon`}
+            >
+                Coming soon
+            </span>
+        </div>
+        <div className="font-serif text-lg md:text-xl text-[#0A192F] leading-tight mb-2">{title}</div>
+        <p className="text-xs md:text-sm text-slate-700/80 leading-relaxed flex-1">{desc}</p>
+        <div className="mt-4 pt-3 border-t border-[#0A192F]/10 text-[10px] uppercase tracking-widest font-semibold flex items-center gap-1.5" style={{ color: accent }}>
+            <Sparkles size={11} /> {eta}
+        </div>
+    </div>
+);
+
+const PillarStrip = ({ icon: Icon, title, desc, accent }) => (
+    <div className="bg-white border border-[#0A192F]/10 rounded-xl p-5">
+        <div
+            className="w-10 h-10 rounded-md flex items-center justify-center mb-3"
+            style={{ background: accent + "12", color: accent }}
+        >
+            <Icon size={18} strokeWidth={1.75} />
+        </div>
+        <div className="font-serif text-base text-[#0A192F] mb-1.5">{title}</div>
+        <p className="text-xs text-slate-600 leading-relaxed">{desc}</p>
+    </div>
+);

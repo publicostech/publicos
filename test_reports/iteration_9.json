@@ -1,0 +1,34 @@
+{
+  "summary": "Frontend-only verification of 6-item UX revamp: colorful Login/Register, Dashboard Coming-Soon, Knowledge Hub real images, How-It-Works mobile tightening, global mobile responsiveness, no fake dashboard metrics. 10 of 11 checks pass. Only one real defect found: dashboard waitlist CTA does NOT navigate from /dashboard to /#waitlist on Landing (preventDefault is called unconditionally and the section query returns null on dashboard route).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Dashboard 'Join the waitlist' CTA → Landing waitlist section",
+        "issue": "Clicking [data-testid='dashboard-waitlist-cta'] on /dashboard does nothing. onClick handler calls e.preventDefault() unconditionally and then tries document.querySelector(\"[data-testid='waitlist-section']\"). On /dashboard the section does not exist, so scrollIntoView is a no-op AND the Link's normal navigation to /#waitlist is also blocked. User is stranded on /dashboard.",
+        "affected_selectors": ["[data-testid='dashboard-waitlist-cta']"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Fix Dashboard.jsx dashboard-waitlist-cta onClick: only call e.preventDefault() when the target section exists on the current page, otherwise let the <Link to=\"/#waitlist\"> navigate normally. Suggested patch: `onClick={(e) => { const el = document.querySelector(\"[data-testid='waitlist-section']\"); if (el) { e.preventDefault(); el.scrollIntoView({behavior:'smooth'}); } }}`. Additionally, Landing.jsx should read window.location.hash on mount and scrollIntoView the waitlist section so the cross-route navigation finishes smoothly."
+  ],
+  "critical_code_review_comments": [
+    "Dashboard.jsx line 130: unconditional e.preventDefault() inside onClick breaks the cross-route case. The 'other_misc_info' note in the review request explicitly says 'clicking from /dashboard navigates to /' — that contract is currently violated.",
+    "Knowledge Hub images: each customer-assets PNG is ~2.5MB and loaded eagerly. Add loading='lazy' to the <img> tags and consider serving a smaller webp/avif variant — the Landing first-paint on mobile is noticeably heavier than before.",
+    "Login.jsx / Register.jsx: backdrop-blur-xl works on the tested browser but Safari < 15 falls back to a translucent white card with no blur, which makes the colored blobs leak through and reduces contrast. Either accept that, or add @supports(backdrop-filter) guard with a solid fallback.",
+    "Dashboard panel ETA strings ('Goes live with launch city #1', 'Once 5+ states have active reports') are hard-coded English — wire them through the i18n t() helper to match the rest of the app, otherwise Hindi/Telugu/Tamil users see English on the dashboard.",
+    "Dashboard panel 'Founding citizens map' ETA reads 'Visible to admins today · public at 1,000 signups' — this is acceptable today but should auto-flip to 'Public' once db.waitlist count crosses 1000. Currently it would still say 'public at 1,000 signups' even after threshold is reached."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a (frontend-only)", "frontend": "91% (10/11 checks pass)" },
+  "test_credentials": "admin@publicos.in / admin@1234 (used for /dashboard authenticated test). Admin login lands on /admin not /feed — that is correct behaviour for admins.",
+  "seed_data_creation": "none",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "After main agent fixes the dashboard-waitlist-cta onClick, re-run the playwright suite to confirm clicking the CTA on /dashboard lands on / with the waitlist section in view. All other checks (Login gradient + blobs + glass card visible, Register reversed-palette gradient visible, Dashboard prelaunch-banner + 6 coming-soon panels + 3 pillars + no fake metrics like '247,893' / '+18% MoM' / '1.8M citizens', Knowledge Hub real customer-assets PNGs for civic-education/success-story/smart-governance, how-step-01..04 visible with grid-cols-2 + lg:grid-cols-4 classes, no Sparkles undefined console errors) ARE passing — confirmed both visually (screenshots) and via DOM assertions. Mobile 375px width: scrollWidth==clientWidth==375 on Landing, Login, and Dashboard — no horizontal scroll bug. The earlier 'gradient missing' assertion failure was a test bug (browser serialises the style attr to rgb() not hex) — gradient is in fact present and visually correct.",
+  "rca of the issue": "Dashboard.jsx line 128-135 declares the CTA as a <Link to=\"/#waitlist\"> but attaches an onClick that calls e.preventDefault() before checking whether the waitlist-section exists in the current DOM. The Link navigation is therefore always cancelled. On Landing (/) the section exists, scrollIntoView runs, and visually the user thinks the button works. On Dashboard (/dashboard) the section does not exist, scrollIntoView is a silent no-op, and the user is stuck. Reproduction: log in as admin → /dashboard → click 'Join the waitlist' → URL stays /dashboard, nothing scrolls. Fix as described in action_items."
+}

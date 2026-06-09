@@ -40,8 +40,12 @@ export default function Login() {
     };
 
     return (
-        <div data-testid="page-login" className="min-h-[calc(100vh-160px)] flex items-center justify-center px-4 py-12">
-            <div className="w-full max-w-md bg-white border border-[#0A192F]/10 rounded-xl p-7 md:p-9">
+        <div data-testid="page-login" className="relative min-h-[calc(100vh-160px)] flex items-center justify-center px-4 py-12 overflow-hidden" style={{ background: "linear-gradient(135deg, #FFEAD9 0%, #FFF4CC 25%, #D4F5E1 55%, #DAEFFB 80%, #E8DCFB 100%)" }}>
+            <div className="absolute -top-32 -left-24 w-96 h-96 rounded-full blur-3xl opacity-60 bg-[#FF9933] pointer-events-none" />
+            <div className="absolute -bottom-32 -right-24 w-[28rem] h-[28rem] rounded-full blur-3xl opacity-50 bg-[#3B82F6] pointer-events-none" />
+            <div className="absolute top-1/3 right-1/4 w-72 h-72 rounded-full blur-3xl opacity-40 bg-[#138808] pointer-events-none" />
+
+            <div className="relative w-full max-w-md bg-white/80 backdrop-blur-xl border border-white/40 rounded-2xl p-7 md:p-9 shadow-[0_30px_80px_-20px_rgba(10,25,47,0.25)]">
                 <div className="text-center mb-7">
                     <div className="inline-block mb-5"><BrandLogo height={32} /></div>
                     <h1 className="font-serif text-2xl md:text-3xl text-[#0A192F]">Welcome back.</h1>

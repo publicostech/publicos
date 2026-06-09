@@ -43,8 +43,12 @@ export default function Register() {
     };
 
     return (
-        <div data-testid="page-register" className="min-h-[calc(100vh-160px)] flex items-center justify-center px-4 py-12">
-            <div className="w-full max-w-md bg-white border border-[#0A192F]/10 rounded-xl p-7 md:p-9">
+        <div data-testid="page-register" className="relative min-h-[calc(100vh-160px)] flex items-center justify-center px-4 py-12 overflow-hidden" style={{ background: "linear-gradient(135deg, #E8DCFB 0%, #DAEFFB 25%, #D4F5E1 55%, #FFF4CC 80%, #FFEAD9 100%)" }}>
+            <div className="absolute -top-32 -right-24 w-96 h-96 rounded-full blur-3xl opacity-60 bg-[#FF9933] pointer-events-none" />
+            <div className="absolute -bottom-32 -left-24 w-[28rem] h-[28rem] rounded-full blur-3xl opacity-50 bg-[#8B5CF6] pointer-events-none" />
+            <div className="absolute top-1/4 left-1/3 w-72 h-72 rounded-full blur-3xl opacity-40 bg-[#138808] pointer-events-none" />
+
+            <div className="relative w-full max-w-md bg-white/80 backdrop-blur-xl border border-white/40 rounded-2xl p-7 md:p-9 shadow-[0_30px_80px_-20px_rgba(10,25,47,0.25)]">
                 <div className="text-center mb-7">
                     <div className="inline-block mb-5"><BrandLogo height={32} /></div>
                     <h1 className="font-serif text-2xl md:text-3xl text-[#0A192F]">Join PublicOS.</h1>
