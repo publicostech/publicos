@@ -11,6 +11,8 @@ import jwt
 import httpx
 import requests
 import resend
+import firebase_admin
+from firebase_admin import credentials as fb_credentials, auth as fb_auth
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends, UploadFile, File, Query
@@ -37,10 +39,22 @@ FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
 EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
 STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
 APP_NAME = "publicos"
+FIREBASE_ADMIN_SDK_PATH = os.environ.get("FIREBASE_ADMIN_SDK_PATH", "/app/backend/firebase-admin-sdk.json")
 resend.api_key = RESEND_API_KEY
 
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
+
+# ------------------------------------------------------------------
+# Firebase Admin init (singleton, idempotent)
+# ------------------------------------------------------------------
+if not firebase_admin._apps:
+    try:
+        _fb_cred = fb_credentials.Certificate(FIREBASE_ADMIN_SDK_PATH)
+        firebase_admin.initialize_app(_fb_cred)
+        logger.info(f"Firebase Admin initialized for project: {_fb_cred.project_id}")
+    except Exception as e:
+        logger.error(f"Firebase Admin init failed: {e}")
 
 app = FastAPI(title="PublicOS API")
 api = APIRouter(prefix="/api")
@@ -220,6 +234,10 @@ class ResetIn(BaseModel):
 class GoogleCallbackIn(BaseModel):
     session_id: str
 
+class FirebaseTokenIn(BaseModel):
+    id_token: str
+    name: Optional[str] = None
+
 class IssueIn(BaseModel):
     title: str = Field(min_length=8, max_length=160)
     description: str = Field(min_length=10, max_length=4000)
@@ -270,42 +288,49 @@ class ResetTokenIn(BaseModel):
 # ------------------------------------------------------------------
 # Auth routes
 # ------------------------------------------------------------------
-@api.post("/auth/register")
-async def register(body: RegisterIn, response: Response):
-    email = body.email.lower().strip()
-    if await db.users.find_one({"email": email}):
-        raise HTTPException(status_code=400, detail="An account with this email already exists. Try logging in.")
-    user_id = f"user_{uuid.uuid4().hex[:12]}"
-    doc = {
-        "user_id": user_id,
-        "email": email,
-        "name": body.name.strip(),
-        "password_hash": hash_password(body.password),
-        "role": "citizen",
-        "picture": None,
-        "auth_provider": "password",
-        "reputation": 0,
-        "created_at": datetime.now(timezone.utc),
-    }
-    await db.users.insert_one(doc)
-    token = create_token(user_id, email, "citizen")
-    set_auth_cookie(response, token)
-    return {
-        "user_id": user_id,
-        "email": email,
-        "name": body.name,
-        "role": "citizen",
-        "token": token,
-    }
+@api.post("/auth/firebase")
+async def auth_firebase(body: FirebaseTokenIn, response: Response):
+    """Verify Firebase ID token, upsert user in Mongo, return our JWT."""
+    try:
+        decoded = await asyncio.to_thread(fb_auth.verify_id_token, body.id_token)
+    except Exception as e:
+        logger.error(f"Firebase token verify failed: {e}")
+        raise HTTPException(status_code=401, detail="Invalid Firebase token")
 
-@api.post("/auth/login")
-async def login(body: LoginIn, response: Response):
-    email = body.email.lower().strip()
+    firebase_uid = decoded.get("uid")
+    email = (decoded.get("email") or "").lower().strip()
+    if not email:
+        raise HTTPException(status_code=400, detail="No email in Firebase token")
+    provider = decoded.get("firebase", {}).get("sign_in_provider", "password")
+    name = decoded.get("name") or body.name or email.split("@")[0]
+    picture = decoded.get("picture")
+
     user = await db.users.find_one({"email": email})
-    if not user or not user.get("password_hash"):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
-    if not verify_password(body.password, user["password_hash"]):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+    if not user:
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        doc = {
+            "user_id": user_id,
+            "firebase_uid": firebase_uid,
+            "email": email,
+            "name": name,
+            "role": "citizen",
+            "picture": picture,
+            "auth_provider": "google" if provider == "google.com" else "password",
+            "reputation": 0,
+            "created_at": datetime.now(timezone.utc),
+        }
+        await db.users.insert_one(doc)
+        user = doc
+    else:
+        # Attach firebase_uid to legacy users; refresh picture for google sign-ins
+        update = {"firebase_uid": firebase_uid}
+        if provider == "google.com" and picture:
+            update["picture"] = picture
+        if not user.get("name") and name:
+            update["name"] = name
+        await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
+        user.update(update)
+
     token = create_token(user["user_id"], email, user.get("role", "citizen"))
     set_auth_cookie(response, token)
     return {
@@ -325,59 +350,6 @@ async def logout(response: Response):
 @api.get("/auth/me")
 async def me(user: dict = Depends(get_current_user)):
     return user
-
-@api.post("/auth/google/callback")
-async def google_callback(body: GoogleCallbackIn, response: Response):
-    """Exchange Emergent session_id for user info; find or create user; issue our JWT."""
-    try:
-        async with httpx.AsyncClient(timeout=15) as hc:
-            r = await hc.get(
-                "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
-                headers={"X-Session-ID": body.session_id},
-            )
-            r.raise_for_status()
-            data = r.json()
-    except Exception as e:
-        logger.error(f"Google session exchange failed: {e}")
-        raise HTTPException(status_code=400, detail="Could not verify Google session")
-
-    email = data.get("email", "").lower().strip()
-    if not email:
-        raise HTTPException(status_code=400, detail="No email returned from Google")
-
-    user = await db.users.find_one({"email": email})
-    if not user:
-        user_id = f"user_{uuid.uuid4().hex[:12]}"
-        doc = {
-            "user_id": user_id,
-            "email": email,
-            "name": data.get("name") or email.split("@")[0],
-            "password_hash": None,
-            "role": "citizen",
-            "picture": data.get("picture"),
-            "auth_provider": "google",
-            "reputation": 0,
-            "created_at": datetime.now(timezone.utc),
-        }
-        await db.users.insert_one(doc)
-        user = doc
-    else:
-        # Attach google to existing user (1 email = 1 account)
-        await db.users.update_one(
-            {"user_id": user["user_id"]},
-            {"$set": {"picture": data.get("picture") or user.get("picture"), "google_linked": True}},
-        )
-
-    token = create_token(user["user_id"], email, user.get("role", "citizen"))
-    set_auth_cookie(response, token)
-    return {
-        "user_id": user["user_id"],
-        "email": email,
-        "name": user["name"],
-        "role": user.get("role", "citizen"),
-        "picture": user.get("picture"),
-        "token": token,
-    }
 
 # ---------- Forgot / reset password ----------
 async def send_reset_email(to_email: str, name: str, reset_url: str):
@@ -1032,28 +1004,47 @@ async def admin_analytics(_a: dict = Depends(require_admin)):
 # Seed
 # ------------------------------------------------------------------
 async def seed_admin():
+    # 1. Ensure admin exists in Firebase Auth (so they can sign in via Firebase)
+    try:
+        try:
+            fb_user = await asyncio.to_thread(fb_auth.get_user_by_email, ADMIN_EMAIL)
+            # Refresh password to match env (idempotent)
+            await asyncio.to_thread(
+                fb_auth.update_user, fb_user.uid,
+                password=ADMIN_PASSWORD, display_name="PublicOS Admin",
+            )
+        except fb_auth.UserNotFoundError:
+            fb_user = await asyncio.to_thread(
+                fb_auth.create_user,
+                email=ADMIN_EMAIL, password=ADMIN_PASSWORD,
+                display_name="PublicOS Admin", email_verified=True,
+            )
+            logger.info(f"Firebase admin user created: {ADMIN_EMAIL}")
+        firebase_uid = fb_user.uid
+    except Exception as e:
+        logger.error(f"Firebase admin seed failed: {e}")
+        firebase_uid = None
+
+    # 2. Ensure admin exists in Mongo
     existing = await db.users.find_one({"email": ADMIN_EMAIL})
     if not existing:
         await db.users.insert_one({
             "user_id": f"user_admin_{uuid.uuid4().hex[:8]}",
+            "firebase_uid": firebase_uid,
             "email": ADMIN_EMAIL,
             "name": "PublicOS Admin",
-            "password_hash": hash_password(ADMIN_PASSWORD),
             "role": "admin",
             "picture": None,
             "auth_provider": "password",
             "reputation": 999,
             "created_at": datetime.now(timezone.utc),
         })
-        logger.info(f"Admin seeded: {ADMIN_EMAIL}")
+        logger.info(f"Admin seeded in Mongo: {ADMIN_EMAIL}")
     else:
-        # Ensure password matches env (idempotent)
-        if not existing.get("password_hash") or not verify_password(ADMIN_PASSWORD, existing["password_hash"]):
-            await db.users.update_one(
-                {"email": ADMIN_EMAIL},
-                {"$set": {"password_hash": hash_password(ADMIN_PASSWORD), "role": "admin"}},
-            )
-            logger.info("Admin password refreshed")
+        update = {"role": "admin"}
+        if firebase_uid and existing.get("firebase_uid") != firebase_uid:
+            update["firebase_uid"] = firebase_uid
+        await db.users.update_one({"email": ADMIN_EMAIL}, {"$set": update})
 
 async def seed_demo_issues():
     """Seed approved demo issues so the public feed has content even when fresh."""
@@ -1071,6 +1062,52 @@ async def seed_demo_issues():
     if docs:
         await db.issues.insert_many(docs)
         logger.info(f"Seeded {len(docs)} demo issues")
+
+async def seed_test_users():
+    """Seed citizen + official test accounts in Firebase + Mongo (idempotent)."""
+    test_users = [
+        {"email": "citizen1@test.com", "password": "test1234", "name": "Test Citizen", "role": "citizen", "jurisdiction": None},
+        {"email": "official.ka@test.com", "password": "test1234", "name": "KA Official", "role": "official", "jurisdiction": {"state": "Karnataka", "district": ""}},
+    ]
+    for tu in test_users:
+        try:
+            try:
+                fb_user = await asyncio.to_thread(fb_auth.get_user_by_email, tu["email"])
+                await asyncio.to_thread(fb_auth.update_user, fb_user.uid, password=tu["password"], display_name=tu["name"])
+            except fb_auth.UserNotFoundError:
+                fb_user = await asyncio.to_thread(
+                    fb_auth.create_user,
+                    email=tu["email"], password=tu["password"],
+                    display_name=tu["name"], email_verified=True,
+                )
+                logger.info(f"Firebase test user created: {tu['email']}")
+            firebase_uid = fb_user.uid
+        except Exception as e:
+            logger.error(f"Firebase seed failed for {tu['email']}: {e}")
+            firebase_uid = None
+        existing = await db.users.find_one({"email": tu["email"]})
+        if not existing:
+            doc = {
+                "user_id": f"user_{uuid.uuid4().hex[:12]}",
+                "firebase_uid": firebase_uid,
+                "email": tu["email"],
+                "name": tu["name"],
+                "role": tu["role"],
+                "picture": None,
+                "auth_provider": "password",
+                "reputation": 0,
+                "created_at": datetime.now(timezone.utc),
+            }
+            if tu["jurisdiction"]:
+                doc["jurisdiction"] = tu["jurisdiction"]
+            await db.users.insert_one(doc)
+        else:
+            update = {"role": tu["role"]}
+            if firebase_uid and existing.get("firebase_uid") != firebase_uid:
+                update["firebase_uid"] = firebase_uid
+            if tu["jurisdiction"]:
+                update["jurisdiction"] = tu["jurisdiction"]
+            await db.users.update_one({"email": tu["email"]}, {"$set": update})
 
 @app.on_event("startup")
 async def startup():
@@ -1092,6 +1129,7 @@ async def startup():
     except Exception as e:
         logger.error(f"Storage init failed at startup: {e}")
     await seed_admin()
+    await seed_test_users()
     await seed_demo_issues()
 
 @api.get("/")

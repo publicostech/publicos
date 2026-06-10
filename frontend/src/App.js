@@ -1,5 +1,5 @@
 import "@/App.css";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 import { LanguageProvider } from "./lib/i18n";
 import { AuthProvider } from "./lib/auth";
@@ -18,16 +18,9 @@ import OfficialPanel from "./pages/OfficialPanel";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import AuthCallback from "./pages/AuthCallback";
 import MyDashboard from "./pages/MyDashboard";
 
 function AppRoutes() {
-    const location = useLocation();
-    // Google OAuth callback comes back with #session_id in URL fragment
-    if (location.hash?.includes("session_id=")) {
-        return <AuthCallback />;
-    }
     return (
         <Routes>
             <Route path="/" element={<Landing />} />
@@ -42,7 +35,6 @@ function AppRoutes() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
 
             <Route path="/submit" element={
                 <ProtectedRoute><Submit /></ProtectedRoute>

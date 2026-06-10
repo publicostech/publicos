@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { api, formatApiError } from "../lib/api";
+import { formatApiError } from "../lib/api";
+import { useAuth } from "../lib/auth";
+import { formatFirebaseError } from "../lib/firebase";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Loader2, Mail, CheckCircle2 } from "lucide-react";
 import BrandLogo from "../components/shared/BrandLogo";
 
 export default function ForgotPassword() {
+    const { forgotPassword } = useAuth();
     const [email, setEmail] = useState("");
     const [busy, setBusy] = useState(false);
     const [sent, setSent] = useState(false);
@@ -17,10 +20,16 @@ export default function ForgotPassword() {
         setErr("");
         setBusy(true);
         try {
-            await api.post("/auth/forgot-password", { email });
+            await forgotPassword(email);
             setSent(true);
         } catch (e) {
-            setErr(formatApiError(e));
+            // Firebase intentionally returns errors only for malformed emails — we still show success
+            // for auth/user-not-found to prevent email enumeration.
+            if (e?.code === "auth/user-not-found") {
+                setSent(true);
+            } else {
+                setErr(e?.code ? formatFirebaseError(e) : formatApiError(e));
+            }
         } finally {
             setBusy(false);
         }
@@ -33,7 +42,7 @@ export default function ForgotPassword() {
                     <div className="inline-block mb-5"><BrandLogo height={32} /></div>
                     <h1 className="font-serif text-2xl md:text-3xl text-[#0A192F]">Forgot your password?</h1>
                     <p className="text-sm text-slate-500 mt-1.5">
-                        We'll email you a reset link that's valid for 15 minutes.
+                        We'll email you a secure reset link from Firebase.
                     </p>
                 </div>
 
@@ -42,7 +51,7 @@ export default function ForgotPassword() {
                         <CheckCircle2 size={36} className="mx-auto text-emerald-600" strokeWidth={1.5} />
                         <h2 className="font-serif text-xl text-[#0A192F]">Check your inbox.</h2>
                         <p className="text-sm text-slate-600 leading-relaxed">
-                            If an account exists for <strong>{email}</strong>, a password reset link is on its way. The link expires in 15 minutes.
+                            If an account exists for <strong>{email}</strong>, a password reset link is on its way. Check your spam folder if you don't see it within a minute.
                         </p>
                         <Link to="/login" className="inline-block text-sm font-semibold text-[#FF9933] hover:underline">
                             Back to login

@@ -5,6 +5,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Loader2, Mail, Lock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { formatFirebaseError } from "../lib/firebase";
 import { formatApiError } from "../lib/api";
 import BrandLogo from "../components/shared/BrandLogo";
 
@@ -36,7 +37,7 @@ const LOGIN_VARIANTS = [
 ];
 
 export default function Login() {
-    const { login } = useAuth();
+    const { login, googleLogin } = useAuth();
     const nav = useNavigate();
     const loc = useLocation();
     const [email, setEmail] = useState("");
@@ -55,16 +56,25 @@ export default function Login() {
             const dest = loc.state?.from || (data.role === "admin" ? "/admin" : "/me");
             nav(dest, { replace: true });
         } catch (e) {
-            setErr(formatApiError(e));
+            setErr(e?.code ? formatFirebaseError(e) : formatApiError(e));
         } finally {
             setBusy(false);
         }
     };
 
-    const googleLogin = () => {
-        // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
-        const redirectUrl = window.location.origin + "/me";
-        window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+    const handleGoogleLogin = async () => {
+        setErr("");
+        setBusy(true);
+        try {
+            const data = await googleLogin();
+            toast.success(`Welcome, ${data.name.split(" ")[0]}`);
+            const dest = loc.state?.from || (data.role === "admin" ? "/admin" : "/me");
+            nav(dest, { replace: true });
+        } catch (e) {
+            setErr(e?.code ? formatFirebaseError(e) : formatApiError(e));
+        } finally {
+            setBusy(false);
+        }
     };
 
     return (
@@ -134,10 +144,11 @@ export default function Login() {
                         </div>
 
                         <button
-                            onClick={googleLogin}
+                            onClick={handleGoogleLogin}
                             type="button"
+                            disabled={busy}
                             data-testid="google-login-btn"
-                            className="w-full flex items-center justify-center gap-3 border border-[#0A192F]/15 rounded-md py-2.5 hover:border-[#0A192F] transition-colors font-semibold text-sm"
+                            className="w-full flex items-center justify-center gap-3 border border-[#0A192F]/15 rounded-md py-2.5 hover:border-[#0A192F] transition-colors font-semibold text-sm disabled:opacity-60"
                         >
                             <svg width="18" height="18" viewBox="0 0 48 48">
                                 <path fill="#FFC107" d="M43.6,20.5H42V20H24v8h11.3c-1.6,4.7-6.1,8-11.3,8c-6.6,0-12-5.4-12-12s5.4-12,12-12c3.1,0,5.8,1.2,7.9,3l5.7-5.7C34.5,6.2,29.5,4,24,4C13,4,4,13,4,24s9,20,20,20s20-9,20-20C44,22.8,43.9,21.6,43.6,20.5z" />
