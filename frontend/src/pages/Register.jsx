@@ -186,7 +186,7 @@ export default function Register() {
                                 <Label htmlFor="pwd">Password</Label>
                                 <div className="relative">
                                     <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                    <Input id="pwd" data-testid="register-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="pl-9 h-11 bg-white" placeholder="6+ characters" />
+                                    <Input id="pwd" data-testid="register-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="pl-9 h-11 bg-white" placeholder="6+ characters" />
                                 </div>
                             </div>
                             {err && (

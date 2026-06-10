@@ -24,7 +24,7 @@ Build a modern, scalable civic-tech web platform where citizens can report local
 10. **Footer** — brand promise tagline + Citizens / Governance / Civic Promise columns.
 
 ## 5. Core features delivered
-- Auth: Email/Password (JWT, bcrypt) + Google OAuth (Emergent) + Resend password reset (15 min token, pre-validated on mount)
+- Auth: **Firebase Authentication** (Email/Password + Google Sign-In). Backend verifies Firebase ID tokens via Admin SDK and issues internal JWT. Password reset uses Firebase's built-in `sendPasswordResetEmail`. (Migrated from Emergent-managed Google Auth on 2026-02-09.)
 - Real Leaflet + OpenStreetMap with Nominatim reverse geocoding + map clustering at scale (react-leaflet-cluster)
 - Issue lifecycle: `submitted → under_review → assigned → in_progress → resolved / rejected`
 - Two-step closure: `closure_requested` → admin/official `closed` or reopen to previous status
@@ -68,12 +68,15 @@ Build a modern, scalable civic-tech web platform where citizens can report local
 - Extract landing sub-components (MissionCard / CommunityCard / ChampionCategory) into `/components/landing/*`
 
 ## 8. Tech stack
-React + Tailwind + shadcn UI + Plus Jakarta Sans + Leaflet + react-leaflet-cluster · FastAPI + Motor + PyJWT + bcrypt + Resend + emergentintegrations (object storage + LLM) · MongoDB
+React + Tailwind + shadcn UI + Plus Jakarta Sans + Leaflet + react-leaflet-cluster + **Firebase Auth (Web SDK + Identity Toolkit REST)** · FastAPI + Motor + PyJWT + **firebase-admin** + Resend + emergentintegrations (object storage + LLM) · MongoDB
 
 ## 9. Key endpoints
-- Auth: `POST /api/auth/{register,login,google,forgot-password,reset-password,reset-password/validate}` · `GET /api/auth/me`
+- Auth: `POST /api/auth/firebase` (verify Firebase ID token → issue PublicOS JWT) · `POST /api/auth/logout` · `GET /api/auth/me`
 - Issues: `GET/POST /api/issues` · `GET /api/issues/{id}` · `POST /api/issues/{id}/{upvote,comments,request-closure}`
 - Storage: `POST /api/upload` · `GET /api/files/{file_id}`
 - AI: `POST /api/ai/classify`
 - Admin: `POST /api/admin/issues/{id}/{approve,reject,status,closure-decision}` · `GET /api/admin/{issues,users,analytics,officials}` · `POST /api/admin/officials/{assign,revoke}`
 - Official: `GET /api/official/{me,issues}` · `POST /api/official/issues/{id}/status`
+
+## 10. Changelog
+- **2026-02-09** — Migrated authentication from Emergent-managed Google Auth → Firebase Authentication (project `publicos-804ec`). Backend uses firebase-admin SDK; frontend bypasses Firebase JS SDK for email/password (uses Identity Toolkit REST via axios — fetch was being intercepted by SDK telemetry causing broken error UX) but keeps SDK for Google popup. All friendly error messages (wrong password, duplicate email, weak password, network error) verified working.

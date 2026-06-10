@@ -4,11 +4,10 @@ import {
     auth,
     googleProvider,
     signInWithPopup,
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    updateProfile,
     sendPasswordResetEmail,
     fbSignOut,
+    restSignIn,
+    restSignUp,
 } from "./firebase";
 
 const AuthContext = createContext({
@@ -22,13 +21,8 @@ const AuthContext = createContext({
     refreshMe: async () => {},
 });
 
-// Exchange a Firebase ID token for our backend JWT, store it, and return the merged user object.
-const exchangeFirebaseToken = async (firebaseUser, displayName = null) => {
-    const idToken = await firebaseUser.getIdToken(/* forceRefresh */ true);
-    const { data } = await api.post("/auth/firebase", {
-        id_token: idToken,
-        name: displayName || firebaseUser.displayName || undefined,
-    });
+const exchangeBackend = async (idToken, name = null) => {
+    const { data } = await api.post("/auth/firebase", { id_token: idToken, name: name || undefined });
     if (data.token) localStorage.setItem("publicos_token", data.token);
     return data;
 };
@@ -59,25 +53,24 @@ export const AuthProvider = ({ children }) => {
     }, [refreshMe]);
 
     const login = async ({ email, password }) => {
-        const cred = await signInWithEmailAndPassword(auth, email, password);
-        const data = await exchangeFirebaseToken(cred.user);
+        const fb = await restSignIn(email, password);
+        const data = await exchangeBackend(fb.idToken);
         setUser(data);
         return data;
     };
 
     const register = async ({ email, password, name }) => {
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        if (name) {
-            try { await updateProfile(cred.user, { displayName: name }); } catch (_) { /* non-fatal */ }
-        }
-        const data = await exchangeFirebaseToken(cred.user, name);
+        const fb = await restSignUp(email, password, name);
+        const data = await exchangeBackend(fb.idToken, name);
         setUser(data);
         return data;
     };
 
     const googleLogin = async () => {
+        // Google popup uses the Firebase JS SDK (popup flow needs it).
         const cred = await signInWithPopup(auth, googleProvider);
-        const data = await exchangeFirebaseToken(cred.user);
+        const idToken = await cred.user.getIdToken(true);
+        const data = await exchangeBackend(idToken);
         setUser(data);
         return data;
     };
