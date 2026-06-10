@@ -1,0 +1,60 @@
+{
+  "summary": "End-to-end validation of Firebase Authentication migration (PublicOS). Backend: 12/12 pytest tests pass — /api/auth/firebase verifies real Firebase ID tokens, upserts users in Mongo, returns role-correct JWT for admin/citizen/official; /api/auth/me, /auth/logout, /api/issues (>=10 seeded), /api/waitlist (unauth), citizen issue submission + admin approval all work. Frontend: 10/12 UI flows pass — admin/citizen/official email-password login, new user registration, logout, forgot-password, public feed without auth, language switch (en↔hi), and Google buttons all working. TWO bugs found: (1) Wrong-password on /login shows generic 'Network error. Check your connection.' instead of friendly 'Incorrect email or password.' (2) Duplicate registration also shows 'Network error.' instead of 'An account with this email already exists.' — both because the Firebase SDK throws an error code (auth/network-request-failed or auth/internal-error wrapping INVALID_LOGIN_CREDENTIALS / EMAIL_EXISTS) that is not the auth/invalid-credential / auth/email-already-in-use that formatFirebaseError expects.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Login.jsx (formatFirebaseError mapping)",
+        "issue": "On wrong password, UI shows 'Network error. Check your connection.' instead of the spec-mandated 'Incorrect email or password.' Firebase Identity Toolkit actually returns HTTP 400 with body {error.message: 'INVALID_LOGIN_CREDENTIALS'} (confirmed via response interception). The displayed text corresponds to the map entry for code 'auth/network-request-failed' in /app/frontend/src/lib/firebase.js, meaning the FirebaseError thrown by signInWithEmailAndPassword carries that code in this environment (Firebase JS SDK v12.14.0). The mapping table is missing 'auth/invalid-login-credentials' and the catch logic does not fall back to inspecting err.customData.message / response body.",
+        "selector": "[data-testid='login-error']",
+        "priority": "HIGH"
+      },
+      {
+        "component": "Register.jsx (formatFirebaseError mapping)",
+        "issue": "On duplicate email registration the UI also shows 'Network error. Check your connection.' instead of 'An account with this email already exists. Try logging in.' Same root cause — Firebase SDK is throwing auth/network-request-failed (or auth/internal-error) instead of auth/email-already-in-use that the map expects.",
+        "selector": "[data-testid='register-error']",
+        "priority": "HIGH"
+      },
+      {
+        "component": "Register.jsx (weak password)",
+        "issue": "Submitting password='12345' (5 chars) does NOT display the custom 'Password must be at least 6 characters' inline error — the form is silently blocked by the native HTML minLength=6 attribute on the <Input>. Technically Firebase is not called (which satisfies one half of the spec), but the user gets only the browser-default tooltip, not the branded error message. Add an explicit JS validation in Register.submit that sets register-error when password.length < 6 before calling createUserWithEmailAndPassword.",
+        "selector": "[data-testid='register-error']",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Header language switcher",
+        "issues": ["Review request expected lang-kn (Kannada) but only en/hi/te are wired in LANGS array in /app/frontend/src/components/layout/Header.jsx. Either the spec is wrong or Kannada needs to be added back. en↔hi switch works correctly (verified body text changes)."]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_firebase_auth.py",
+    "/app/test_reports/pytest/pytest_firebase.xml"
+  ],
+  "action_items": [
+    "Fix formatFirebaseError in /app/frontend/src/lib/firebase.js: add entries for 'auth/invalid-login-credentials' → 'Incorrect email or password.' and, more importantly, also detect by parsing err.customData.message / err.message for substrings 'INVALID_LOGIN_CREDENTIALS', 'EMAIL_EXISTS', 'EMAIL_NOT_FOUND', etc., so the fallback works regardless of the SDK's code attribute. Right now the map yields 'Network error' because the SDK is emitting auth/network-request-failed for what should be auth/invalid-credential.",
+    "Optionally upgrade firebase to a v12.x patch that emits auth/invalid-credential or auth/invalid-login-credentials for 400 INVALID_LOGIN_CREDENTIALS responses, OR disable Firebase's email-enumeration-protection so that wrong-password returns the older auth/wrong-password code (already mapped).",
+    "Register.jsx: add explicit `if (password.length < 6) { setErr('Password must be at least 6 characters.'); return; }` before calling Firebase, so the friendly inline message appears (currently only HTML5 native validation blocks submit silently).",
+    "Decide on Kannada (kn) support — either re-add it to LANGS in /app/frontend/src/components/layout/Header.jsx or update test_credentials.md / review spec to drop the lang-kn expectation. Telugu (te) is already supported."
+  ],
+  "critical_code_review_comments": [
+    "/app/frontend/src/lib/firebase.js formatFirebaseError() relies solely on err.code mapping. When the Firebase SDK throws a more generic auth/network-request-failed or auth/internal-error (which it does in this preview env for INVALID_LOGIN_CREDENTIALS), every user sees 'Network error. Check your connection.' which is misleading and a major UX regression vs the previous JWT login. Add response-body / err.customData parsing as a secondary fallback.",
+    "/app/frontend/src/lib/auth.js logout(): both fbSignOut and api.post('/auth/logout') are wrapped in try/catch swallowing errors with empty handlers. If either fails the user has no way to know — at minimum log to console.error so QA / Sentry can pick it up.",
+    "Backend /api/auth/firebase (server.py:291) — when token verification fails the response detail is hard-coded English 'Invalid Firebase token'. If the frontend ever wants to surface this, it needs to be i18n-friendly. Low priority.",
+    "seed_admin / seed_test_users (server.py:1006, 1066) — verified idempotent and correctly upserts both Firebase Auth and Mongo. Good. But there is no guard if FIREBASE_ADMIN_SDK_PATH is missing — server would crash on import. Consider graceful fallback for dev mode without firebase-admin-sdk.json.",
+    "Register.jsx submit() — calls createUserWithEmailAndPassword then updateProfile then exchangeFirebaseToken sequentially. If exchangeFirebaseToken fails the Firebase user IS created but the Mongo user is NOT. Consider a cleanup path (cred.user.delete()) on backend exchange failure, otherwise duplicate-email errors will subsequently fire even though the user has no DB record."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_firebase_auth.py (new pytest suite, 12 tests, all passing)"
+  ],
+  "success_rate": { "backend": "100% (12/12)", "frontend": "83% (10/12 flows; 2 friendly-error-message bugs)" },
+  "test_credentials": "admin@publicos.in / admin@1234, citizen1@test.com / test1234, official.ka@test.com / test1234 — all three verified working via UI + direct Firebase Identity Toolkit signInWithPassword + backend /api/auth/firebase exchange.",
+  "seed_data_creation": "Created 1 ephemeral waitlist entry (TEST_wl_<ts>@example.com), 1 ephemeral citizen-submitted issue (TEST_issue_<ts>), and 2 ephemeral Firebase+Mongo users (test_qa_<ts>@publicos.test). All prefixed with TEST_ for easy cleanup.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Once main agent patches formatFirebaseError to also key off err.customData.message / err.message string contents (or upgrades Firebase SDK / disables email-enumeration-protection), re-run the WRONG_PWD and DUP_REGISTER flows to confirm friendly messages. Backend tests in /app/backend/tests/test_firebase_auth.py can be re-run as a regression suite — they're idempotent. Note: header data-testids in this app are 'user-menu-trigger', 'menu-logout', 'lang-switcher', 'lang-option-{en|hi|te}' — NOT 'user-menu', 'lang-en', etc. as suggested in the original review request; the actual selectors are what's wired in /app/frontend/src/components/layout/Header.jsx. The 'lang-kn' testid does not exist (Telugu te is in the LANGS array instead of Kannada). All other flows (Public feed renders 18 cards without auth, citizen submit page loads, /official route gates correctly for officials+admins, /admin route gates correctly for admins) are passing.",
+  "rca of the issue": "Firebase JS SDK v12.14.0 in this preview environment (publicos-804ec project) does NOT raise the err.code 'auth/invalid-credential' or 'auth/wrong-password' that formatFirebaseError expects. Instead, when Identity Toolkit returns HTTP 400 INVALID_LOGIN_CREDENTIALS (confirmed via in-browser response interception, body = {\"error\":{\"code\":400,\"message\":\"INVALID_LOGIN_CREDENTIALS\"}}), the SDK propagates a FirebaseError whose .code happens to match the map entry 'auth/network-request-failed' — yielding the 'Network error. Check your connection.' UX. Same path for EMAIL_EXISTS on register. Reproduction: /login → citizen1@test.com / wrongpass → 'Network error' shown. /register → re-use an already registered email → 'Network error' shown. Mitigation: extend formatFirebaseError() to parse err.customData?.message and err.message for 'INVALID_LOGIN_CREDENTIALS' / 'EMAIL_EXISTS' / 'EMAIL_NOT_FOUND' substrings BEFORE falling back to the code map, OR add explicit map entries for whatever code the SDK is actually emitting (you can log err.code from the Login.jsx catch to confirm)."
+}
